@@ -1,11 +1,22 @@
 
 
 
-
-
-
-
-
+| Buttons       | Action               | Condition         |
+|---------------|----------------------|-------------------|
+| A             | huntmode             | whenHeld          |
+| B             | intake               | whenHeld          |
+| X             | ghost teleop         | whenHeld          |
+| Y             | VacuumMode toggle    | toggleWhenPressed |
+| Dpad up       | shotblock.Unblock    | whenPressed       |
+| Dpad down     | shotblock.Block      | whenPressed       |
+| Dpad left     | SetHoodPosition-0.01 | whenPressed       |
+| Dpad right    | SetHoodPosition+0.01 | whenPressed       |
+| Left bumper   | intake and uptake    | whenHeld          |
+| Right bumper  | ShotSequence         | whenHeld          |
+| Left trigger  | ReverseIntake        | whileActiveOnce   |
+| Right trigger |                      |                   |
+| back          | reset position       | whenPressed       |
+| start         |                      |                   |
 
 ## TeamCode Module
 

@@ -19,7 +19,6 @@ import org.firstinspires.ftc.teamcode.Commands.Drive.ManualDrive;
 import org.firstinspires.ftc.teamcode.Commands.Intake.HuntMode.HuntModeCommand;
 import org.firstinspires.ftc.teamcode.Commands.Intake.ReverseIntakeCommand;
 import org.firstinspires.ftc.teamcode.Commands.Intake.IntakeCommand;
-import org.firstinspires.ftc.teamcode.Commands.ManualTurretMoveForResetting;
 import org.firstinspires.ftc.teamcode.Commands.Intake.VacuumModeOff;
 import org.firstinspires.ftc.teamcode.Commands.Intake.VacuumModeOn;
 import org.firstinspires.ftc.teamcode.Commands.UptakeRampControle;
@@ -32,10 +31,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.Shooter.Flywheel;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter.HoodTilt;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter.RampLift;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter.ShotBlock;
-import org.firstinspires.ftc.teamcode.Subsystems.Shooter.Turret;
-import org.firstinspires.ftc.teamcode.Subsystems.Shooter.TurretResetButton;
 import org.firstinspires.ftc.teamcode.Subsystems.Utils.Blinkin;
-import org.firstinspires.ftc.teamcode.Subsystems.Utils.OperatorControlsSubsystem;
 import org.firstinspires.ftc.teamcode.Subsystems.DriveTrain;
 import org.firstinspires.ftc.teamcode.Subsystems.Odometry.Gyro;
 import org.firstinspires.ftc.teamcode.Subsystems.Odometry.Odometry;
@@ -86,18 +82,15 @@ public class RobotContainer {
     public static GamepadEx toolOp;
 
     // create pointers to robot subsystems
-    public static OperatorControlsSubsystem operatorControls;
     public static Gyro gyro;
     public static PinpointOdometry odometryPod;
     public static DriveTrain drivesystem;
     public static Odometry odometry;
-    public static TurretResetButton turretresetbutton;
     public static HoodTilt hoodtilt;
     public static ShotBlock shotblock;
     public static RampLift ramplift;
     public static Intake intake;
     public static Flywheel shooter;
-    public static Turret turret;
     public static LimeLight limeLight;
     public static RampCamera rampCamera;
     public static UptakeSensor uptakeSensor;
@@ -160,18 +153,15 @@ public class RobotContainer {
         toolOp = new GamepadEx(ActiveOpMode.gamepad2);
 
         // create systems
-        operatorControls = new OperatorControlsSubsystem();
         gyro = new Gyro();
         odometryPod = new PinpointOdometry();
         drivesystem = new DriveTrain();
         odometry = new Odometry();
-        turretresetbutton = new TurretResetButton();
         hoodtilt = new HoodTilt();
         shotblock = new ShotBlock();
         ramplift = new RampLift();
         intake = new Intake();
         shooter = new Flywheel();
-        turret = new Turret();
         limeLight = new LimeLight();
         rampCamera = new RampCamera("RampCam");
         uptakeSensor = new UptakeSensor();
@@ -193,9 +183,6 @@ public class RobotContainer {
         driverOp.getGamepadButton(GamepadKeys.Button.BACK).whenPressed(new InstantCommand(()-> odometry.setCurrentPos
                 (AutoFunctions.redVsBlue(new Pose2d(0.0, 0.0, new Rotation2d(Math.toRadians(-90.0)))))));
 
-//              -------------------------- (Driver) Turret System --------------------------
-
-        driverOp.getGamepadButton(GamepadKeys.Button.START).whenHeld(new ManualTurretMoveForResetting());
 
 //              -------------------------- (Driver) Shooting Controls  --------------------------
 
@@ -300,9 +287,6 @@ public class RobotContainer {
 
         // set limelight to apriltag pipeline
         limeLight.SetPipelineMode(0);
-
-        // reset turret to straight position;
-        turret.ResetTurretPositionStraight();
     }
 
     /**Robot starting code for auto - This runs once at start of auto*/

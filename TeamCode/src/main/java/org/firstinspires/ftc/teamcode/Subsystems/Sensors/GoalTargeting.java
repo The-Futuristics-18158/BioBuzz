@@ -70,11 +70,11 @@ public class GoalTargeting extends SubsystemBase {
             // ---------- Hood Angle and Flywheel Speed ----------
 
             //if (!CameraHasValidTarget)
-                // camera does not have target, use odometry to set determine distance to target
-                TargetDistance = GetDistanceToGoal();
+            // camera does not have target, use odometry to set determine distance to target
+            TargetDistance = GetDistanceToGoal();
 
             //if (!CameraHasValidTarget)
-                RobotContainer.telemetrySubsystem.addData("distance", TargetDistance, true);
+            RobotContainer.telemetrySubsystem.addData("distance", TargetDistance, true);
             //else
             //    RobotContainer.telemetrySubsystem.addData("distance(AT)", TargetDistance, true);
 
@@ -82,40 +82,7 @@ public class GoalTargeting extends SubsystemBase {
             RobotContainer.shooter.SetFlywheelSpeed(CalculateSpeed(TargetDistance));
 
 
-            // ---------- Turret Angle ----------
-
-            // aiming of turret depends on if we have valid target in camera sight or not
-            if (CameraHasValidTarget) {
-                // we have target in camera sight - adjust turret by angle to target
-                double currentturretangle = RobotContainer.turret.getTurretDegrees();
-                RobotContainer.turret.moveTurret(currentturretangle - CameraTargetXAngle);
-            }
-            else if (!CameraHasValidTarget && MissedCameraTargetCount < 5){ // do nothing}
-//
-            } else {
-                // use odometry to set turret angle
-                Pose2d pose = RobotContainer.odometry.getCurrentPos();
-                Translation2d targetPose = GetShotTaget();
-                double angle_rad = (new Vector2d(pose.getX() - targetPose.getX(), pose.getY() - targetPose.getY())).angle();
-                double turretTargetAngle = Math.toDegrees(angle_rad) - 180.0;
-                RobotContainer.telemetrySubsystem.addData("angle_to_target", turretTargetAngle+180.0, true);
-                RobotContainer.telemetrySubsystem.addData("angle_to_target_m180", turretTargetAngle, true);
-
-                if (RobotContainer.isRedAlliance())
-                    turretTargetAngle += 360.0;
-                turretTargetAngle -= (RobotContainer.gyro.getYawAngle() + 180.0) % 360.0 - 180.0;
-                if (turretTargetAngle < -180.0)
-                    turretTargetAngle +=360.0;
-                if (turretTargetAngle >180.0)
-                    turretTargetAngle -= 360.0;
-                //turretTargetAngle -= normalizeAngle(RobotContainer.gyro.getYawAngle());
-
-                RobotContainer.telemetrySubsystem.addData("turret_target_angle", turretTargetAngle, true);
-                RobotContainer.turret.moveTurret(turretTargetAngle);
-
-           }
         }
-
     }
 
     private double normalizeAngle(double degrees) {
