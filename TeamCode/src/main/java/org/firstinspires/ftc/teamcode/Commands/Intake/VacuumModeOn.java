@@ -14,7 +14,6 @@ public class VacuumModeOn extends CommandBase {
         // add subsystem requirements (if any) - for example:
         //addRequirements(RobotContainer.drivesystem);
         addRequirements(RobotContainer.intake);
-        addRequirements(RobotContainer.shotblock);
         addRequirements(RobotContainer.ramplift);
     }
 
@@ -22,7 +21,6 @@ public class VacuumModeOn extends CommandBase {
     @Override
     public void initialize() {
         RobotContainer.isVacuuming = true;
-        RobotContainer.shotblock.Unblock();
         RobotContainer.ramplift.Raise();
         RobotContainer.intake.intakeRun();
     }

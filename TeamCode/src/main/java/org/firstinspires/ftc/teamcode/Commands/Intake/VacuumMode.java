@@ -16,7 +16,6 @@ public class VacuumMode extends CommandBase {
         // add subsystem requirements (if any) - for example:
         addRequirements(RobotContainer.intake);
         addRequirements(RobotContainer.ramplift);
-        addRequirements(RobotContainer.shotblock);
 
         onoff = false;
     }
@@ -28,13 +27,11 @@ public class VacuumMode extends CommandBase {
         {
             RobotContainer.intake.intakeRun();
             RobotContainer.ramplift.Raise();
-            RobotContainer.shotblock.Unblock();
         }
         else
         {
             RobotContainer.intake.intakeStop();
             RobotContainer.ramplift.Lower();
-            RobotContainer.shotblock.Block();
         }
 
 

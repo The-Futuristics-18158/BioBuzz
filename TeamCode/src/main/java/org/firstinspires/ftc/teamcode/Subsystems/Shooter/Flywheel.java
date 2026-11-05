@@ -121,8 +121,9 @@ public class Flywheel extends SubsystemBase {
             if (SpeedError < -50.0)
                 NewPower = 0.0;
 
-            flywheelMotorRight.setPower(NewPower);
-            flywheelMotorLeft.setPower(NewPower);
+            // Commented out these two lines at the start of BioBuzz to stop idle spinning
+            //flywheelMotorRight.setPower(NewPower);
+            //flywheelMotorLeft.setPower(NewPower);
 
             //PanelsTelemetry.INSTANCE.getTelemetry().addData("FlywheelSpeed", CurrentSpeed);
             //PanelsTelemetry.INSTANCE.getTelemetry().addData("FlywheelTarget", TargetSpeed);

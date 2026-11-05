@@ -26,7 +26,7 @@ public class HoodTilt extends SubsystemBase {
     /** Place code here to initialize subsystem */
     public HoodTilt() {
         // create servo and configure
-        TiltServo = RobotContainer.ActiveOpMode.hardwareMap.get(Servo.class, "hoodAngleServo");
+        TiltServo = RobotContainer.ActiveOpMode.hardwareMap.get(Servo.class, "inniOuttiServo");
         TiltServo.setDirection(Servo.Direction.FORWARD);
 
         // set default position to min angle

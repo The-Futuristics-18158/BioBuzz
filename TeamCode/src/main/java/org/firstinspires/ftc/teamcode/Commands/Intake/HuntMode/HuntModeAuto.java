@@ -77,42 +77,42 @@ public class HuntModeAuto extends CommandBase {
 
         List<ColorBlobLocatorProcessor.Blob> blobs;
         // change this later if for get green blob detections and or get purple blob detections (if we want to look for one specific color)
-        blobs = RobotContainer.rampCamera.GetAllBlobDetections();
+        //blobs = RobotContainer.rampCamera.GetAllBlobDetections();
 
         // If the robot sees an artifact in the camera
-        if (blobs != null && !(blobs.isEmpty())) {
-            haveArtifact = true;
-            blobX = blobs.get(0).getCircle().getCenter().x - 160.0;
-
-            // set forward speed to value depending on how far artifact from center of camera
-            // first number is forward
-            // second number is how quickly the speed goes down when artifact is off center
-            y_speed = 0.9 - 0.8*Math.min(Math.abs(blobX/160.0),1.0);
-
-            if (y_speed < 0.0){ y_speed = 0.0;}
-
-            if(!RobotContainer.isRedAlliance()){
-               y_speed = y_speed* -1.0;
-            }
-
-
-            if(RobotContainer.isRedAlliance()){
-                x_speed = -xControl.calculate(blobX);
-            }else{
-                x_speed = xControl.calculate(blobX);
-            }
-
-        // Don't see anything therefor go ahead, no strafe
-        } else {
-            haveArtifact = false;
-            blobX = 0;
-            //omega_speed = 0.0;
-            y_speed = 0.9;
-            x_speed = 0.0;
-            if(!RobotContainer.isRedAlliance()){
-               y_speed = y_speed* -1.0;
-            }
-        }
+//        if (blobs != null && !(blobs.isEmpty())) {
+//            haveArtifact = true;
+//            blobX = blobs.get(0).getCircle().getCenter().x - 160.0;
+//
+//            // set forward speed to value depending on how far artifact from center of camera
+//            // first number is forward
+//            // second number is how quickly the speed goes down when artifact is off center
+//            y_speed = 0.9 - 0.8*Math.min(Math.abs(blobX/160.0),1.0);
+//
+//            if (y_speed < 0.0){ y_speed = 0.0;}
+//
+//            if(!RobotContainer.isRedAlliance()){
+//               y_speed = y_speed* -1.0;
+//            }
+//
+//
+//            if(RobotContainer.isRedAlliance()){
+//                x_speed = -xControl.calculate(blobX);
+//            }else{
+//                x_speed = xControl.calculate(blobX);
+//            }
+//
+//        // Don't see anything therefor go ahead, no strafe
+//        } else {
+//            haveArtifact = false;
+//            blobX = 0;
+//            //omega_speed = 0.0;
+//            y_speed = 0.9;
+//            x_speed = 0.0;
+//            if(!RobotContainer.isRedAlliance()){
+//               y_speed = y_speed* -1.0;
+//            }
+//        }
 
 //       // if busy intaking robot, stop and wait for it to finish before proceeding
 //        if (RobotContainer.distance.isRampArtifactPresent()) {
@@ -120,7 +120,7 @@ public class HuntModeAuto extends CommandBase {
 //            x_speed = 0.0;
 //        }
 
-        RobotContainer.drivesystem.FieldDrive(x_speed, y_speed, omega_speed);
+//        RobotContainer.drivesystem.FieldDrive(x_speed, y_speed, omega_speed);
 
     }
     // This method to return true only when command is to finish. Otherwise return false

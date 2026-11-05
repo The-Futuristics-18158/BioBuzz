@@ -14,7 +14,6 @@ public class VacuumModeOff extends CommandBase {
         // add subsystem requirements (if any) - for example:
         //addRequirements(RobotContainer.drivesystem);
         addRequirements(RobotContainer.intake);
-        addRequirements(RobotContainer.shotblock);
         addRequirements(RobotContainer.ramplift);
     }
 
@@ -23,7 +22,6 @@ public class VacuumModeOff extends CommandBase {
     public void initialize() {
         RobotContainer.intake.intakeStop();
         RobotContainer.ramplift.Lower();
-        RobotContainer.shotblock.Block();
         RobotContainer.isVacuuming = false;
     }
 

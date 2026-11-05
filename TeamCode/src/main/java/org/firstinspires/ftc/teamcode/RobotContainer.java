@@ -30,7 +30,6 @@ import org.firstinspires.ftc.teamcode.Subsystems.Sensors.UptakeSensor;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter.Flywheel;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter.HoodTilt;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter.RampLift;
-import org.firstinspires.ftc.teamcode.Subsystems.Shooter.ShotBlock;
 import org.firstinspires.ftc.teamcode.Subsystems.Utils.Blinkin;
 import org.firstinspires.ftc.teamcode.Subsystems.DriveTrain;
 import org.firstinspires.ftc.teamcode.Subsystems.Odometry.Gyro;
@@ -87,12 +86,11 @@ public class RobotContainer {
     public static DriveTrain drivesystem;
     public static Odometry odometry;
     public static HoodTilt hoodtilt;
-    public static ShotBlock shotblock;
     public static RampLift ramplift;
     public static Intake intake;
     public static Flywheel shooter;
     public static LimeLight limeLight;
-    public static RampCamera rampCamera;
+    //public static RampCamera rampCamera;
     public static UptakeSensor uptakeSensor;
     public static GoalTargeting targeting;
     public static Blinkin ledsubsystem;
@@ -158,15 +156,14 @@ public class RobotContainer {
         drivesystem = new DriveTrain();
         odometry = new Odometry();
         hoodtilt = new HoodTilt();
-        shotblock = new ShotBlock();
         ramplift = new RampLift();
         intake = new Intake();
         shooter = new Flywheel();
         limeLight = new LimeLight();
-        rampCamera = new RampCamera("RampCam");
+        //rampCamera = new RampCamera("RampCam");
         uptakeSensor = new UptakeSensor();
         targeting = new GoalTargeting();
-        ledsubsystem = new Blinkin();
+        //ledsubsystem = new Blinkin();
     }
 
     /**Init teleop runs when you hit play*/
@@ -205,9 +202,6 @@ public class RobotContainer {
 
 //             -------------------------- Test Buttions/Manual Controls --------------------------
 
-        // Block/Unblock
-        driverOp.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(new InstantCommand(()->shotblock.Unblock()));
-        driverOp.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(new InstantCommand(()->shotblock.Block()));
 
         // Hood Adjust
         driverOp.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(new InstantCommand(()->hoodtilt.SetHoodPosition(hoodtilt.GetHoodPosition()-0.01)));
