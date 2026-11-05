@@ -1,14 +1,6 @@
-apply plugin: 'com.android.application'
-
-//
-// build.gradle in TeamCode
-//
-// Most of the definitions for building your module reside in a common, shared
-// file 'build.common.gradle'. Being factored in this way makes it easier to
-// integrate updates to the FTC into your code. If you really need to customize
-// the build definitions, you can place those customizations in this file, but
-// please think carefully as to whether such customizations are really necessary
-// before doing so.
+plugins {
+    id 'com.android.application'
+}
 
 // Custom definitions may go here
 
@@ -19,11 +11,11 @@ apply from: '../build.dependencies.gradle'
 android {
     namespace = 'org.firstinspires.ftc.teamcode'
 
-    packagingOptions {
+    packaging {
         jniLibs {
             pickFirsts += ['**/*.so']
+            useLegacyPackaging = true
         }
-        jniLibs.useLegacyPackaging true
     }
 }
 
