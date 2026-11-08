@@ -82,3 +82,6 @@ lint/tmp/
 # lint/reports/
 /TeamCode/FindEmptyJavaDoc.ps1
 *.ps1
+
+# glenn's api key
+bamboo*.json
