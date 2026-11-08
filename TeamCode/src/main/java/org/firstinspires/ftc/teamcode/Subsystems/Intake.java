@@ -8,172 +8,247 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
 /**
- * Setting up the intake subsystem.<p>
- * This makes the robot know that the intake motor exists.
- * This motor should run continuously not to a specific position.
- * Therefor this subsystem only has start and stop functions.
+ * Subsystem controlling the intake roller mechanism.
+ * Uses a closed-loop PIF speed controller with optional agitation mode to prevent artifact jams.
+ *
  * @author superzokabear
  */
 public class Intake extends SubsystemBase {
 
-    // Local objects and variables here
+    // Intake motor hardware reference
     private final DcMotorEx intakeMotor;
 
-    // constants
+    // Gear reduction and encoder ticks constants
     private final double TICKS_PER_ROTATION = 28.0;
     private final double INV_TICKS_PER_ROTATION = 1.0 / TICKS_PER_ROTATION;
-    private final double GEAR_REDUCTION = 5.0 * 1.2; // Motor gearbox is 5:1 and the gearing is 1.2x.
+    private final double GEAR_REDUCTION = 5.0 * 1.2; // Motor gearbox is 5:1 and external gearing is 1.2x
     private final double TICKS_PER_INTAKE_ROTATION = TICKS_PER_ROTATION * GEAR_REDUCTION;
 
-
-    // f and p gain units are in power/motor_rps
-    // ideal no-load Fgain = 1.0 / 100rps = 0.01
-    // June 2/2026 KN: Intake testing shows actual speed of 90rps for 100% power
-    // therefore select Fgain = 0.01 * 100/90 = 0.0111
+    // PIF controller gains (power per motor RPS)
     private final double fgain = 0.0111;
     private final double pgain = 0.013;
     private final double igain = 0.001;
 
-    // current motor values
-    private double TargetSpeed;     // in motor rps
-    private double CurrentSpeed;    // in motor rps
-    private double CurrentPower;    // applied voltage -1.0 to 1.0
+    // Current motor state values
+    private double TargetSpeed;     // Target speed in motor RPS
+    private double CurrentSpeed;    // Measured speed in motor RPS
+    private double CurrentPower;    // Applied motor power (-1.0 to 1.0)
 
-    // motor controller state values
+    // Integral error accumulator
     private double ierror;
 
-    // agitator
+    // Agitation state
     private boolean AgitateMode;
     private int AgitatorCount;
 
-    /** Place code here to initialize subsystem */
+    /**
+     * Initializes the intake subsystem, configures motor direction and zero power behavior,
+     * and resets controller errors and agitation states.
+     *
+     * @author superzokabear
+     */
     public Intake() {
-        // Creates the motor using the hardware map
+        // Retrieve the intake motor from the active OpMode's hardware map
         intakeMotor = RobotContainer.ActiveOpMode.hardwareMap.get(DcMotorEx.class, "intakeMotor");
-        // Sets motor direction
-        intakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
+        // Configure motor direction and float zero-power behavior
+        intakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        // Set motor power
+
+        // Initially zero the motor power and target speed
         intakeMotor.setPower(0.0);
-        // by default, set target speed to 0
         TargetSpeed = 0.0;
-        // reset PIF controller
+
+        // Reset PIF controller integrated error
         ierror = 0.0;
 
+        // Initialize agitation mode
         AgitatorCount = 0;
         AgitateMode = false;
-
     }
 
-    /** Method called periodically by the scheduler
-     * Place any code here you wish to have run periodically */
+    /**
+     * Method called periodically by the command scheduler to compute and apply the intake motor velocity PIF loop.
+     *
+     * @author superzokabear
+     */
     @Override
     public void periodic() {
-
-        // counter used to generate on/off duty cycle of agitator
+        // Counter used to generate on/off duty cycle for agitation
         AgitatorCount++;
         if (AgitatorCount > 10)
             AgitatorCount = 0;
 
-
-        // if robot is not in auto or teleop, then force flywheel to be unpowered
-        if (RobotContainer.GetCurrentMode()!= RobotContainer.Modes.Auto &&
-                RobotContainer.GetCurrentMode()!= RobotContainer.Modes.TeleOp)
+        // If robot is not in auto or teleop, force motor off
+        if (RobotContainer.GetCurrentMode() != RobotContainer.Modes.Auto &&
+                RobotContainer.GetCurrentMode() != RobotContainer.Modes.TeleOp) {
             intakeMotor.setPower(0.0);
-
-        else {
-
-            // do we revise target (Agitate) or leave as-is?
+        } else {
+            // Apply agitation pulsing if active
             double revisedtarget;
             if (AgitateMode && AgitatorCount < 2)
                 revisedtarget = 0;
             else
                 revisedtarget = TargetSpeed;
 
-            // sets motor speed in rps (=28xticks/s)
+            // Compute current speed in motor revolutions per second
             CurrentSpeed = intakeMotor.getVelocity() * INV_TICKS_PER_ROTATION;
-            double error = revisedtarget - CurrentSpeed;//TargetSpeed - CurrentSpeed;
+            double error = revisedtarget - CurrentSpeed;
 
-            // limit P and I action for large errors
-            // to reduce control transients
-            // only apply when not agitation)
+            // Limit P and I action for large errors to reduce transients
             if (!AgitateMode && error > 20) error = 20;
             if (!AgitateMode && error < -20) error = -20;
 
-            // integrated error
+            // Integrate error
             ierror += igain * error;
 
-            // anti-windup limiter
+            // Anti-windup limiter
             if (ierror > 0.2) ierror = 0.2;
             if (ierror < -0.2) ierror = -0.2;
 
-            // set intake motor power (PIF controller)
+            // Compute PIF controller output power and set motor power
             CurrentPower = fgain * revisedtarget + pgain * error + ierror;
             intakeMotor.setPower(CurrentPower);
-
-            //PanelsTelemetry.INSTANCE.getTelemetry().addData("IntakeSpeed", CurrentSpeed);
-            //PanelsTelemetry.INSTANCE.getTelemetry().addData("IntakeTarget", revisedtarget);
-            //PanelsTelemetry.INSTANCE.getTelemetry().addData("IntakePower", CurrentPower);
-            //PanelsTelemetry.INSTANCE.getTelemetry().update();
         }
     }
 
-    // Place special subsystem methods here
+    /**
+     * Sets the target speed of the intake in motor RPS without agitation.
+     *
+     * @author superzokabear
+     *
+     * @param speed target speed in motor revolutions per second
+     */
+    public void intakeSetSpeed(double speed) {
+        intakeSetSpeed(speed, false);
+    }
 
-    /** Sets speed of intake in motor rps */
-    public void intakeSetSpeed(double speed) { intakeSetSpeed(speed, false);}
+    /**
+     * Sets the target speed of the intake in motor RPS with optional agitation.
+     *
+     * @author superzokabear
+     *
+     * @param speed target speed in motor revolutions per second
+     * @param Agitate true to enable intermittent agitation pulsing, false for continuous
+     */
     public void intakeSetSpeed(double speed, boolean Agitate) {
         AgitateMode = Agitate;
         TargetSpeed = speed;
     }
 
+    /**
+     * Runs the intake forward at standard collection speed (90 motor RPS) without agitation.
+     *
+     * @author superzokabear
+     */
+    public void intakeRun() {
+        intakeRun(false);
+    }
 
-    /**Run the intake at set speed (rps)*/
-    public void intakeRun(){ intakeRun(false);}
-    public void intakeRun(boolean Agitate){
+    /**
+     * Runs the intake forward at standard collection speed (90 motor RPS) with optional agitation.
+     *
+     * @author superzokabear
+     *
+     * @param Agitate true to enable agitation, false otherwise
+     */
+    public void intakeRun(boolean Agitate) {
         AgitateMode = Agitate;
         TargetSpeed = 90.0;
     }
 
-    /**Run the intake at set speed (rps)*/
-    public void intakeRunReducedSpeed() { intakeRunReducedSpeed(false);}
-    public void intakeRunReducedSpeed(boolean Agitate) {
-        AgitateMode = Agitate;
-        TargetSpeed = 75.0; // was 60.0
+    /**
+     * Runs the intake forward at reduced speed (75 motor RPS) without agitation.
+     *
+     * @author superzokabear
+     */
+    public void intakeRunReducedSpeed() {
+        intakeRunReducedSpeed(false);
     }
 
-    /**Run the intake at set speed (rps)*/
-    public void intakeReverse(){intakeReverse(false);}
+    /**
+     * Runs the intake forward at reduced speed (75 motor RPS) with optional agitation.
+     *
+     * @author superzokabear
+     *
+     * @param Agitate true to enable agitation, false otherwise
+     */
+    public void intakeRunReducedSpeed(boolean Agitate) {
+        AgitateMode = Agitate;
+        TargetSpeed = 75.0;
+    }
+
+    /**
+     * Runs the intake in reverse (-30 motor RPS) to clear jams without agitation.
+     *
+     * @author superzokabear
+     */
+    public void intakeReverse() {
+        intakeReverse(false);
+    }
+
+    /**
+     * Runs the intake in reverse (-30 motor RPS) with optional agitation.
+     *
+     * @author superzokabear
+     *
+     * @param Agitate true to enable agitation, false otherwise
+     */
     public void intakeReverse(boolean Agitate) {
         AgitateMode = Agitate;
         TargetSpeed = -30.0;
     }
 
-    /**Stop intake*/
-    public void intakeStop(){
+    /**
+     * Stops the intake motor and resets the PIF controller state.
+     *
+     * @author superzokabear
+     */
+    public void intakeStop() {
         ResetController();
         AgitateMode = false;
         TargetSpeed = 0.0;
     }
 
-    /** Internal function that resets motor PIF controller */
-    private void ResetController() { ierror = 0.0;}
+    /**
+     * Resets the PIF controller integrated error accumulator.
+     *
+     * @author superzokabear
+     */
+    private void ResetController() {
+        ierror = 0.0;
+    }
 
-    /** returns motor position in encoder ticks */
-    public double GetMotorPostion() { return intakeMotor.getCurrentPosition();}
+    /**
+     * Returns the current intake motor position in encoder ticks.
+     *
+     * @author superzokabear
+     *
+     * @return current motor encoder position in ticks
+     */
+    public double GetMotorPostion() {
+        return intakeMotor.getCurrentPosition();
+    }
 
-
-    /** Gets intake speed
-     * @return intake speed in rps*/
-    public double GetIntakeMotorCurrentSpeed () {
+    /**
+     * Retrieves the measured rotational speed at the intake roller shaft in RPS.
+     *
+     * @author superzokabear
+     *
+     * @return intake roller speed in revolutions per second
+     */
+    public double GetIntakeMotorCurrentSpeed() {
         return CurrentSpeed / GEAR_REDUCTION;
     }
 
-    /** Sets intake speed (as opposed to at the motor shaft)
-     @param speed - intake speed in rps*/
+    /**
+     * Sets the target speed at the intake roller shaft in RPS.
+     *
+     * @author superzokabear
+     *
+     * @param speed desired intake roller speed in revolutions per second
+     */
     public void SetIntakeMotorSpeed(double speed) {
         intakeSetSpeed(speed * GEAR_REDUCTION);
     }
-
 }
