@@ -1,140 +1,131 @@
 package org.firstinspires.ftc.teamcode.Commands.Drive;
 
-
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.arcrobotics.ftclib.controller.PIDController;
-import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 import org.firstinspires.ftc.teamcode.Utility.Utils;
 
-// command controls mecanum in manual mode
+/**
+ * Command for teleoperated field-oriented mecanum driving.
+ * Supports joystick dead-zoning, right-trigger boost speed scaling, alliance orientation inversion,
+ * and automatic gyro heading-hold PID control when no rotational input is commanded.
+ *
+ * @author gbuckholtz
+ */
 public class ManualDrive extends CommandBase {
 
-    // PID controller used to counteract rotational drift due to misalignment of wheels
-    private PIDController m_headingPID = new PIDController(0.06, 0.001, 0); // was p0.05 P was 0.07
-    //private PIDController m_headingPID = new PIDController(0.0, 0.000, 0); // was p0.05
-    private Double m_PIDTarget = null;    // Use Double class so it can be set to null
+    // PID controller used to counteract rotational drift due to wheel misalignment
+    private PIDController m_headingPID = new PIDController(0.06, 0.001, 0);
+    private Double m_PIDTarget = null;
     private long m_pidDelay = -1;
 
-    double powerFactor;
-    double basePowerFacter = 0.65;
-    double boostPowerFacter = 0.35;
-    double slowPowerFactor = 0.4;
+    // Power scaling factors
+    private double powerFactor;
+    private double basePowerFacter = 0.65;
+    private double boostPowerFacter = 0.35;
+    private double slowPowerFactor = 0.4;
 
-    //final double MAX_ACCEL = 1.0;  // max accel in m/s2
-    //double old_dX, old_dY;
-    // ElapsedTime deltat;
-
-    // constructor
+    /**
+     * Constructs a ManualDrive command requiring the drivetrain subsystem.
+     *
+     * @author gbuckholtz
+     */
     public ManualDrive() {
-
-        // this command requires mecanum drive subsystem
+        // Require drivetrain
         addRequirements(RobotContainer.drivesystem);
-
-        //deltat = new ElapsedTime();
     }
 
-    // This method is called once when command is started
+    /**
+     * Resets the heading target and PID delay upon command startup.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void initialize() {
         m_PIDTarget = null;
         m_pidDelay = 10;
-        //old_dX=0.0;
-        //old_dY = 0.0;
-        //deltat.reset();
     }
 
-    // This method is called periodically while command is active
+    /**
+     * Periodically processes gamepad inputs, applies dead-zones, scales power,
+     * corrects for heading drift, and drives the robot in field coordinates.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void execute() {
-
-        // get joystick input - for competition
+        // Read joystick inputs from gamepad 1
         double dX = RobotContainer.ActiveOpMode.gamepad1.left_stick_x;
         double dY = -RobotContainer.ActiveOpMode.gamepad1.left_stick_y;
         double omega = -3.0 * RobotContainer.ActiveOpMode.gamepad1.right_stick_x;
         double speedTrigger = RobotContainer.ActiveOpMode.gamepad1.right_trigger;
-        //double slowTrigger = RobotContainer.ActiveOpMode.gamepad1.left_trigger;
 
-
-        if (RobotContainer.isRedAlliance==false){
+        // Invert X and Y for blue alliance so forward always matches driver perspective
+        if (!RobotContainer.isRedAlliance) {
             dX = dX * -1;
             dY = dY * -1;
         }
 
-        // implement dead-zoning of joystick inputs
+        // Apply dead-zoning to prevent unwanted creep
         dX = Math.abs(dX) > 0.05 ? dX : 0;
         dY = Math.abs(dY) > 0.05 ? dY : 0;
         omega = Math.abs(omega) > 0.05 ? omega : 0;
 
-        // --------- Correct robot angle for gyro angle wander --------
-        if(omega == 0.0 && !RobotContainer.ActiveOpMode.gamepad1.back)
-        {
-            if (m_pidDelay > 0)
-                m_pidDelay --;
-            else
-            {
-                // If the target is unset, set it to current heading
-                if(m_PIDTarget == null)
-                {
+        // Correct robot angle for gyro heading wander when no rotation stick is applied
+        if (omega == 0.0 && !RobotContainer.ActiveOpMode.gamepad1.back) {
+            if (m_pidDelay > 0) {
+                m_pidDelay--;
+            } else {
+                // If heading target is unset, lock to current heading
+                if (m_PIDTarget == null) {
                     m_PIDTarget = RobotContainer.gyro.getYawAngle();
-                    m_headingPID.reset(); // Clear existing integral term as may accumulate while not in use
+                    m_headingPID.reset();
                 }
 
+                // Compute heading stabilization rotation
                 omega = m_headingPID.calculate(Utils.AngleDifference(m_PIDTarget, RobotContainer.gyro.getYawAngle()));
             }
-        }
-        else
-        {
-            // there is rotational input, or gyro reset was pressed, set target to null so it's properly reset next time
+        } else {
+            // Rotational input received or gyro reset pressed; release heading lock
             m_PIDTarget = null;
             m_pidDelay = 10;
         }
-        // --------- End Correct robot angle for gyro angle wander --------
 
+        // Calculate power factor with trigger boost
+        powerFactor = basePowerFacter + (speedTrigger * boostPowerFacter);
 
-        powerFactor = basePowerFacter + (speedTrigger * boostPowerFacter);// - (slowTrigger * slowPowerFactor);
-
-        // Since the drive was shifted to closed loop (i.e. requested velocities), change joystick input max values
-        // to MAX_SPEED values.
+        // Scale by maximum drivetrain linear velocity
         powerFactor = powerFactor * RobotContainer.drivesystem.MAX_SPEED;
 
-        // include power factor to get full x,y and omega speeds beings requested
+        // Scale velocity components
         dX *= powerFactor;
         dY *= powerFactor;
         omega *= powerFactor;
 
-        // limit acceleration of robot to MAX_ACCEL - to reduce change of wheel-slide
-        //double t = deltat.seconds();
-        //        if ((dX > old_dX + t*MAX_ACCEL) && (old_dX>0))
-        //            dX = old_dX + t*MAX_ACCEL;
-        //        if ((dX <  old_dX - t*MAX_ACCEL) && (old_dX<0))
-        //            dX = old_dX - t*MAX_ACCEL;
-        //
-        //        if ((dY > old_dY + t*MAX_ACCEL) && (old_dY>0))
-        //            dY = old_dY + t*MAX_ACCEL;
-        //        if ((dY <  old_dY - t*MAX_ACCEL) && (old_dY<0))
-        //            dY = old_dY - t*MAX_ACCEL;
-
-        // save speeds for use next time
-        //old_dX = dX;
-        //old_dY = dY;
-        //deltat.reset();
-
-        // drive robot
+        // Command field-oriented drive
         RobotContainer.drivesystem.FieldDrive(dX, dY, omega);
     }
 
-    // This method to return true only when command is to finish. Otherwise return false
+    /**
+     * TeleOp drive command runs continuously until OpMode ends or another command takes over.
+     *
+     * @author gbuckholtz
+     *
+     * @return always false
+     */
     @Override
     public boolean isFinished() {
-
         return false;
     }
 
-    // This method is called once when command is finished.
+    /**
+     * Called when the command finishes or is interrupted.
+     *
+     * @author gbuckholtz
+     *
+     * @param interrupted true if interrupted by the scheduler
+     */
     @Override
     public void end(boolean interrupted) {
-
     }
-
 }

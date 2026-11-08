@@ -1,50 +1,69 @@
 package org.firstinspires.ftc.teamcode.Commands.Intake;
 
 import com.arcrobotics.ftclib.command.CommandBase;
-import com.arcrobotics.ftclib.command.InstantCommand;
-import com.qualcomm.robotcore.util.ElapsedTime;
-
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
-
-// command template
+/**
+ * Command to run the intake roller forward while the command is active.
+ * Stops the intake when the command ends or is interrupted.
+ *
+ * @author gbuckholtz
+ */
 public class IntakeCommand extends CommandBase {
 
-    // constructor
+    /**
+     * Constructs an IntakeCommand and reserves the Intake subsystem.
+     *
+     * @author gbuckholtz
+     */
     public IntakeCommand() {
-
-      addRequirements(RobotContainer.intake);
-
+        // Declare intake subsystem requirement
+        addRequirements(RobotContainer.intake);
     }
 
-    // This method is called once when command is started
+    /**
+     * Called once when the command begins.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void initialize() {
-
+        // Startup logic if required
     }
 
-    // This method is called periodically while command is active
+    /**
+     * Periodically runs the intake forward at normal speed.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void execute() {
-
+        // Run the intake forward
         RobotContainer.intake.intakeRun();
-
     }
 
-    // This method to return true only when command is to finish. Otherwise return false
+    /**
+     * Runs continuously while scheduled.
+     *
+     * @author gbuckholtz
+     *
+     * @return always false
+     */
     @Override
     public boolean isFinished() {
-
         return false;
-
     }
 
-    // This method is called once when command is finished.
+    /**
+     * Stops the intake when the command completes or is interrupted.
+     *
+     * @author gbuckholtz
+     *
+     * @param interrupted true if command was interrupted
+     */
     @Override
     public void end(boolean interrupted) {
-
+        // Stop intake roller
         RobotContainer.intake.intakeStop();
-
     }
-
 }

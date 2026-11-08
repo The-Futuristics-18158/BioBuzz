@@ -8,74 +8,90 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 import org.firstinspires.ftc.teamcode.Utility.Utils;
 
-/** A command to follow a path generated from input parameters
- * */
+/**
+ * Command that waits passively until the robot's heading aligns with the target goal vector
+ * (settled within 1 degree for at least 0.25 seconds) or until a maximum timeout elapses.
+ *
+ * @author gbuckholtz
+ */
 public class WaitForTarget extends CommandBase {
 
-    double m_endangle;
-    double m_timeout;
-    double m_angleerror;
+    private double m_endangle;
+    private double m_timeout;
+    private double m_angleerror;
 
-    // on-target timer
-    ElapsedTime OnTargetTime;
+    // Timers
+    private ElapsedTime OnTargetTime;
+    private ElapsedTime TimeOutTime;
 
-    // Timeout timer
-    ElapsedTime TimeOutTime;
-
-
-    /** Constructor
-     * Input: timeout in s. Command ends after timeout reached, regardless of state of robot */
+    /**
+     * Constructs a WaitForTarget command with a specified maximum timeout.
+     *
+     * @author gbuckholtz
+     *
+     * @param timeout maximum wait duration in seconds before completing
+     */
     public WaitForTarget(double timeout) {
-
         m_timeout = timeout;
         OnTargetTime = new ElapsedTime();
         TimeOutTime = new ElapsedTime();
-
     }
 
-    // Called when the command is initially scheduled.
+    /**
+     * Computes the target heading angle to the goal and resets alignment and timeout timers.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void initialize() {
-
-        // determine target angle
-
-        // get our current position and the target position
+        // Read current odometry pose
         Pose2d pose = RobotContainer.odometry.getCurrentPos();
-        Translation2d targetPose = new Translation2d(); //= RobotContainer.targeting.GetShotTaget();
+        Translation2d targetPose = new Translation2d();
 
-        // determine target angle
+        // Calculate target heading angle in degrees
         double angle_rad = (new Vector2d(pose.getX() - targetPose.getX(), pose.getY() - targetPose.getY())).angle();
         m_endangle = Math.toDegrees(angle_rad);
 
+        // Reset timers
         OnTargetTime.reset();
         TimeOutTime.reset();
-
     }
 
-    // Called every time the scheduler runs while the command is scheduled.
+    /**
+     * Periodically monitors heading error and resets the on-target timer if error exceeds 1 degree.
+     *
+     * @author gbuckholtz
+     */
     @Override
-    public void execute()
-    {
-        // determine speed to rotate robot
+    public void execute() {
+        // Calculate angle error
         m_angleerror = Utils.AngleDifference(m_endangle, RobotContainer.gyro.getYawAngle());
 
-        // if we are within target, allow timer to count up
-        if (Math.abs(m_angleerror) >=1.0)
+        // Reset settling timer if error is 1.0 degree or greater
+        if (Math.abs(m_angleerror) >= 1.0)
             OnTargetTime.reset();
-
     }
 
-    // Called once the command ends or is interrupted.
+    /**
+     * Called when the command finishes or is interrupted.
+     *
+     * @author gbuckholtz
+     *
+     * @param interrupted true if interrupted by the scheduler
+     */
     @Override
     public void end(boolean interrupted) {
-
     }
 
-    // Returns true when the command should end.
+    /**
+     * Determines whether the robot has settled on the target heading for >= 0.25s or timed out.
+     *
+     * @author gbuckholtz
+     *
+     * @return true when alignment duration or timeout is met
+     */
     @Override
     public boolean isFinished() {
-        // we are finished when within tolerance of target for required duration,
-        // or have timed out
-        return (OnTargetTime.seconds()>0.25 || TimeOutTime.seconds() >=m_timeout);
+        return (OnTargetTime.seconds() > 0.25 || TimeOutTime.seconds() >= m_timeout);
     }
 }

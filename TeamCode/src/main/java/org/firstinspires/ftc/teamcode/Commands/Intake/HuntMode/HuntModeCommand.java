@@ -4,116 +4,78 @@ import com.arcrobotics.ftclib.command.CommandBase;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.RobotContainer;
-import org.firstinspires.ftc.vision.opencv.ColorBlobLocatorProcessor;
-
-import java.util.List;
-
+/**
+ * Command for teleoperated artifact hunting. Uses camera blob tracking to steer the robot
+ * toward detected game pieces while running the intake at collection speed.
+ *
+ * @author gbuckholtz
+ */
 public class HuntModeCommand extends CommandBase {
     private boolean haveArtifact;
     private double blobX;
-    PIDController omegaControl;
-    //boolean finished;
-    int finishedCounter;
+    private PIDController omegaControl;
+    private int finishedCounter;
     private ElapsedTime timer;
     private double seconds;
 
-    // constructor
-    public HuntModeCommand(){
+    /**
+     * Constructs a HuntModeCommand with a default 5.0-second timeout.
+     *
+     * @author gbuckholtz
+     */
+    public HuntModeCommand() {
         this(5.0);
     }
+
+    /**
+     * Constructs a HuntModeCommand with a custom duration in seconds.
+     *
+     * @author gbuckholtz
+     *
+     * @param time maximum duration for the hunt command in seconds
+     */
     public HuntModeCommand(double time) {
-//        haveArtifact = false;
-//
-//        // add subsystem requirements (if any) - for example:
-//        addRequirements(RobotContainer.drivesystem);
-//        addRequirements(RobotContainer.intake);
-//
-//        omegaControl = new PIDController(0.01, 0.0, 0.0);
-//        timer = new ElapsedTime();
-//        seconds = time;
+        seconds = time;
     }
 
-    // This method is called once when command is started
+    /**
+     * Initializes controllers and resets the timeout timer.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void initialize() {
-//        omegaControl.reset();
-//        //finished = false;
-//        finishedCounter=0;
-//        timer.reset();
     }
 
-    // This method is called periodically while command is active
+    /**
+     * Periodic execution loop for tracking artifacts via camera and steering the robot.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void execute() {
-//        // gets list of blobs from the camera
-//        double x_speed;
-//        double y_speed;
-//        double omega_speed;
-//
-//        if (timer.seconds() >= seconds){//May need to adjust timeout
-//
-//            RobotContainer.intake.intakeStop();
-//            finishedCounter++;
-//            //finished = true;
-//
-//        }else {
-//            finishedCounter=0;
-//
-//            RobotContainer.intake.intakeRunReducedSpeed();
-//        }
-//
-//        List<ColorBlobLocatorProcessor.Blob> blobs;
-//        // change this later if for get green blob detections and or get purple blob detections (if we want to look for one specific color)
-//        blobs = RobotContainer.rampCamera.GetAllBlobDetections();
-//
-//        if (blobs != null && !(blobs.isEmpty())) {
-//            haveArtifact = true;
-//            blobX = blobs.get(0).getCircle().getCenter().x - 160.0;
-//
-//            // set forward speed to value depending on how far artifact from center of camera
-//            x_speed = 0.9 - 0.8*Math.min(Math.abs(blobX/160.0),1.0);
-//            // 0.8 - 0.7*
-//
-//            // determine sideways speed
-//            omega_speed = omegaControl.calculate(blobX); //320
-//        } else {
-//            haveArtifact = false;
-//            blobX = 0;
-//            omega_speed = 0.0;
-//            x_speed = 0.9;
-//        }
-//
-//       // if busy intaking robot, stop and wait for it to finish before proceeding
-//        if (RobotContainer.distance.isRampArtifactPresent())
-//        //if (RobotContainer.artifactCamera.IsBottomPresent())
-//           x_speed = 0.0;
-//       //else
-//       //     x_speed = 0.5;//was 0.6 // was 0.5
-//
-//        y_speed= 0;
-//
-//        RobotContainer.drivesystem.RobotDrive(x_speed, y_speed, omega_speed);
-
     }
-    // This method to return true only when command is to finish. Otherwise return false
+
+    /**
+     * Determines whether the hunt command has concluded or timed out.
+     *
+     * @author gbuckholtz
+     *
+     * @return true when finished, false otherwise
+     */
     @Override
-    public boolean isFinished(){
-
+    public boolean isFinished() {
         return true;
-
-//        return (finishedCounter>=3);
-//
-//        //return finished;
     }
 
-    // This method is called once when command is finished.
+    /**
+     * Stops the robot and intake when hunt mode finishes or is interrupted.
+     *
+     * @author gbuckholtz
+     *
+     * @param interrupted true if interrupted by the scheduler
+     */
     @Override
     public void end(boolean interrupted) {
-
-//        RobotContainer.drivesystem.RobotDrive(0,0,0);
-//        RobotContainer.intake.intakeStop();
-
     }
-
 }

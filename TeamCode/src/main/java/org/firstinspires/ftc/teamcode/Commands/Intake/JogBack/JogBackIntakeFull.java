@@ -1,71 +1,70 @@
 package org.firstinspires.ftc.teamcode.Commands.Intake.JogBack;
 
 import com.arcrobotics.ftclib.command.CommandBase;
-import org.firstinspires.ftc.teamcode.RobotContainer;
 
-
-// command template
+/**
+ * Command to jog the intake backward by a full calibrated number of shaft rotations
+ * using proportional position control to clear jam conditions.
+ *
+ * @author gbuckholtz
+ */
 public class JogBackIntakeFull extends CommandBase {
 
+    private double TargetPosition;
 
-    double TargetPosition;
+    // Unit for P-gain: motor rps / motor ticks
+    // 100 is proportional gain; (1/28) * (1/5.0) accounts for motor ticks and 5:1 gearbox
+    private final double Pgain = 100.0 * (1.0 / 28.0) * (1.0 / 5.0);
 
-    // unit for P-gain:  motor rps / motor ticks
-    // note: 100 is gain
-    // 1/28 * 1/5.0 is the gear ratio as we specify target turns in rotations of intake shaft
-    final double Pgain = 100.0 * (1/28.0)*(1/5.0);
+    // Number of intake shaft turns to jog back (0.15 turns)
+    private final double JogBackTurns = 0.15;
 
-    // number of intake shaft turns to jog back by.  i.e. jog back a fixed 0.15 turns
-    final double JogBackTurns = 0.15;
-
-
-    // constructor
+    /**
+     * Constructs a JogBackIntakeFull command.
+     *
+     * @author gbuckholtz
+     */
     public JogBackIntakeFull() {
-
-        // add subsystem requirements (if any) - for example:
-        //addRequirements(RobotContainer.intake);
     }
 
-    // This method is called once when command is started
+    /**
+     * Initializes the jog back command.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void initialize() {
-
     }
 
-    // This method is called periodically while command is active
+    /**
+     * Periodically computes position error and commands intake reverse speed.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void execute() {
-//
-//        // current robot position (in encoder ticks)
-//        double currentPos = RobotContainer.intake.GetMotorPostion();
-//
-//        // if condition does not exist anymore
-//        /**if (RobotContainer.artifactCamera.IsOverloadPresent())
-//            // we are overloaded - set target position at 0.4 rotations back
-//            // note: 28.0*5.0 factor converts to ticks
-//            TargetPosition = currentPos - JogBackTurns*28.0*5.0;
-//        else
-//            // set target to current pos (=zero error) - will turn off intake
-//            TargetPosition = currentPos;*/
-//
-//        // position error (in motor ticks)
-//        double error = TargetPosition - RobotContainer.intake.GetMotorPostion();
-//
-//        // Set speed of intake (in motor rps)
-//        RobotContainer.intake.intakeSetSpeed(Pgain * error);
     }
 
-    // This method to return true only when command is to finish. Otherwise return false
+    /**
+     * Evaluates whether the jog back operation has completed.
+     *
+     * @author gbuckholtz
+     *
+     * @return true when finished, false otherwise
+     */
     @Override
     public boolean isFinished() {
         return false;
     }
 
-    // This method is called once when command is finished.
+    /**
+     * Called when the command ends or is interrupted.
+     *
+     * @author gbuckholtz
+     *
+     * @param interrupted true if interrupted by the scheduler
+     */
     @Override
     public void end(boolean interrupted) {
-
-        //RobotContainer.intake.intakeStop();
     }
-
 }

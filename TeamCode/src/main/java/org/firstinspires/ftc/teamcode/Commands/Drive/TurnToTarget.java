@@ -8,154 +8,150 @@ import com.arcrobotics.ftclib.geometry.Vector2d;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.RobotContainer;
-import org.firstinspires.ftc.teamcode.Utility.AutoFunctions;
 import org.firstinspires.ftc.teamcode.Utility.Utils;
 
-/** A command to follow a path generated from input parameters
- * */
+/**
+ * Command that calculates the field angle toward the alliance goal target from current odometry,
+ * and uses adaptive gain PID control with low-pass filtered error to turn the robot to face the target.
+ *
+ * @author gbuckholtz
+ */
 public class TurnToTarget extends CommandBase {
 
-    double m_endangle;
-    double m_timeout;
+    private double m_endangle;
+    private double m_timeout;
 
-    // speed to rotate robot - determined by PID controller
-    double m_rotatespeed;
-    double m_angleerror;
+    // Rotation speed and error
+    private double m_rotatespeed;
+    private double m_angleerror;
 
-    // PID gains for rotating robot towards ball target
-    public static double kpmax = 0.11; // was 0.15 Feb 5/2026 KN
-    public static double kpmin = 0.04; // was 0.05 Feb 5/2026 KN
+    // Adaptive PID gains for rotation toward target
+    public static double kpmax = 0.11;
+    public static double kpmin = 0.04;
     public static double kp_deg = 90.0;
-    public static double ki = 0.2; // 0.20;
+    public static double ki = 0.2;
     public static double ki_range = 5.0;
     public static double ki_zerorange = 0.5;
-    public static double kd = 0.019; // 0.0035;
+    public static double kd = 0.019;
     public static double kd_deg = 110.0;
 
-    // filtered error angle
-    double filtered_error;
+    // Low-pass filtered error angle
+    private double filtered_error;
     public static double LPFvalue = 0.93;
 
-    // p=0.1, d=0.01
+    private PIDController pidController = new PIDController(kpmax, ki, kd);
 
-    PIDController pidController = new PIDController(kpmax, ki, kd);
+    // Timers
+    private ElapsedTime OnTargetTime;
+    private ElapsedTime TimeOutTime;
 
-    // on-target timer
-    ElapsedTime OnTargetTime;
-
-    // Timeout timer
-    ElapsedTime TimeOutTime;
-
-
-    /** Turn to/by angle
-     * Input: angle - degrees (-180<angle<180)
-     * relative - true if relative to current angle, false if absolute to field
-     * clockwise - true if rotate clockwise, false if counter-clockwise */
+    /**
+     * Constructs a TurnToTarget command with a specified maximum timeout.
+     *
+     * @author gbuckholtz
+     *
+     * @param timeout maximum execution duration in seconds before timing out
+     */
     public TurnToTarget(double timeout) {
-
-        // Use addRequirements() here to declare subsystem dependencies.
+        // Require drivetrain subsystem
         addRequirements(RobotContainer.drivesystem);
 
         m_timeout = timeout;
         OnTargetTime = new ElapsedTime();
         TimeOutTime = new ElapsedTime();
-
     }
 
-    // Called when the command is initially scheduled.
+    /**
+     * Computes the initial target angle vector from odometry to the alliance goal, resets PID and timers.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void initialize() {
-
-        // our current facing angle
-        double ourcurrentangle = RobotContainer.gyro.getYawAngle();
-
-        // determine target angle
-
-        // get our current position and the target position
+        // Current robot position and goal target
         Pose2d pose = RobotContainer.odometry.getCurrentPos();
-        Translation2d targetPose = new Translation2d(); //= RobotContainer.targeting.GetShotTaget();
+        Translation2d targetPose = new Translation2d();
 
-        // determine target angle
+        // Calculate target heading angle in degrees
         double angle_rad = (new Vector2d(pose.getX() - targetPose.getX(), pose.getY() - targetPose.getY())).angle();
         m_endangle = Math.toDegrees(angle_rad);
 
-        // reset PID controller
+        // Reset controller and timers
         pidController.reset();
         m_angleerror = 0.0;
-
         OnTargetTime.reset();
         TimeOutTime.reset();
 
-        // determine initial error
+        // Initial angle error
         filtered_error = Utils.AngleDifference(m_endangle, RobotContainer.gyro.getYawAngle());
-
-
     }
 
-    // Called every time the scheduler runs while the command is scheduled.
+    /**
+     * Periodically calculates angle error, applies adaptive proportional and derivative gains,
+     * and drives robot rotation.
+     *
+     * @author gbuckholtz
+     */
     @Override
-    public void execute()
-    {
-        // determine speed to rotate robot
+    public void execute() {
+        // Compute angle error
         m_angleerror = Utils.AngleDifference(m_endangle, RobotContainer.gyro.getYawAngle());
 
-        // apply LPF to angle error
-        filtered_error = LPFvalue*filtered_error + (1.0-LPFvalue)*m_angleerror;
+        // Apply low-pass filter to error
+        filtered_error = LPFvalue * filtered_error + (1.0 - LPFvalue) * m_angleerror;
 
-
-        // set p gain
+        // Compute adaptive proportional gain based on distance to target
         double pgain = kpmax - (kpmax - kpmin) * Math.abs(m_angleerror) / kp_deg;
         pgain = Math.max(kpmin, pgain);
         pgain = Math.min(kpmax, pgain);
-
         pidController.setP(pgain);
 
-        // only integrate if within 10deg
+        // Enable integral action only within tight error band
         if (Math.abs(m_angleerror) < ki_range)
             pidController.setI(ki);
         else
             pidController.setI(0.0);
 
-        // zero out the integrated error if very close to target
+        // Reset integrator when very close to target to prevent oscillation
         if (Math.abs(m_angleerror) < ki_zerorange)
             pidController.reset();
 
-        //if (Math.abs(m_angleerror) < 90.0)
-        //    pidController.setD(kd);
-        //else
-        //    pidController.setD(kdmin);
-
-        double gain = Math.max(0.0, kd*(1.0-Math.abs(filtered_error)/kd_deg));
+        // Compute derivative gain scaled by filtered error
+        double gain = Math.max(0.0, kd * (1.0 - Math.abs(filtered_error) / kd_deg));
         pidController.setD(gain);
 
-        // execute PID controller
+        // Compute PID rotational velocity
         m_rotatespeed = pidController.calculate(m_angleerror);
 
-        // rotate robot
+        // Command robot rotation
         RobotContainer.drivesystem.RobotDrive(0.0, 0.0, m_rotatespeed);
 
-        // if we are within target, allow timer to count up
-        if (Math.abs(m_angleerror) >=1.0)
+        // Reset on-target settling timer if error exceeds 1 degree
+        if (Math.abs(m_angleerror) >= 1.0)
             OnTargetTime.reset();
-
-
-        // RobotContainer.Panels.FTCTelemetry.addData("TargetAngle", m_endangle);
-        // RobotContainer.Panels.FTCTelemetry.addData("AngleError", Math.max(-10.0, Math.min(10.0, m_angleerror)));
-        // RobotContainer.Panels.FTCTelemetry.update();
     }
 
-    // Called once the command ends or is interrupted.
+    /**
+     * Stops the robot drive when the command finishes or is interrupted.
+     *
+     * @author gbuckholtz
+     *
+     * @param interrupted true if interrupted by the scheduler
+     */
     @Override
     public void end(boolean interrupted) {
-        // stop robot
-        RobotContainer.drivesystem.RobotDrive(0.0,0.0, 0.0);
+        RobotContainer.drivesystem.RobotDrive(0.0, 0.0, 0.0);
     }
 
-    // Returns true when the command should end.
+    /**
+     * Determines whether the robot has maintained target alignment for >= 0.25 seconds or timed out.
+     *
+     * @author gbuckholtz
+     *
+     * @return true when target alignment duration or timeout is met
+     */
     @Override
     public boolean isFinished() {
-        // we are finished when within tolerance of target for required duration,
-        // or have timed out
-        return (OnTargetTime.seconds()>0.25 || TimeOutTime.seconds() >=m_timeout);
+        return (OnTargetTime.seconds() > 0.25 || TimeOutTime.seconds() >= m_timeout);
     }
 }

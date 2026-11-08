@@ -2,54 +2,49 @@ package org.firstinspires.ftc.teamcode.Commands.Drive;
 
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.arcrobotics.ftclib.controller.PIDController;
-import com.arcrobotics.ftclib.geometry.Pose2d;
-import com.arcrobotics.ftclib.geometry.Rotation2d;
-import com.arcrobotics.ftclib.geometry.Translation2d;
-import com.arcrobotics.ftclib.trajectory.Trajectory;
-import com.arcrobotics.ftclib.trajectory.Trajectory.State;
-import com.arcrobotics.ftclib.trajectory.TrajectoryConfig;
-import com.arcrobotics.ftclib.trajectory.TrajectoryGenerator;
-import com.arcrobotics.ftclib.trajectory.constraint.MecanumDriveKinematicsConstraint;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.RobotContainer;
 import org.firstinspires.ftc.teamcode.Utility.Utils;
 
-import java.util.List;
-
-/** A command to follow a path generated from input parameters
- * */
+/**
+ * Command to rotate the robot to a specified target heading (either relative to current heading
+ * or absolute field-oriented) using closed-loop PID rotational control and an on-target settling timer.
+ *
+ * @author gbuckholtz
+ */
 public class TurnTo extends CommandBase {
 
-    double m_angle;
-    boolean m_relative;
-    double m_endangle;
-    double m_timeout;
+    private double m_angle;
+    private boolean m_relative;
+    private double m_endangle;
+    private double m_timeout;
 
-    // speed to rotate robot - determined by PID controller
-    double m_rotatespeed;
-    double m_angleerror;
+    // Rotation speed and error calculated by PID
+    private double m_rotatespeed;
+    private double m_angleerror;
 
-    // PID gains for rotating robot towards ball target
-    double kp = 0.075;
-    double ki = 0.2;
-    double kd = 0.0025;
-    PIDController pidController = new PIDController(kp, ki, kd);
+    // PID controller gains for heading rotation
+    private double kp = 0.075;
+    private double ki = 0.2;
+    private double kd = 0.0025;
+    private PIDController pidController = new PIDController(kp, ki, kd);
 
-    // on-target timer
-    ElapsedTime OnTargetTime;
+    // On-target settling timer and overall timeout timer
+    private ElapsedTime OnTargetTime;
+    private ElapsedTime TimeOutTime;
 
-    // Timeout timer
-    ElapsedTime TimeOutTime;
-
-
-    /** Turn to/by angle
-     * Input: angle - degrees (-180<angle<180)
-     * relative - true if relative to current angle, false if absolute to field
-     * clockwise - true if rotate clockwise, false if counter-clockwise */
+    /**
+     * Constructs a TurnTo command.
+     *
+     * @author gbuckholtz
+     *
+     * @param angle target angle in degrees (-180 to 180)
+     * @param relative true if angle is relative to current robot heading; false if absolute field heading
+     * @param timeout maximum duration in seconds before forcing command completion
+     */
     public TurnTo(double angle, boolean relative, double timeout) {
-
-        // Use addRequirements() here to declare subsystem dependencies.
+        // Require drivetrain
         addRequirements(RobotContainer.drivesystem);
 
         m_angle = angle;
@@ -60,65 +55,78 @@ public class TurnTo extends CommandBase {
         TimeOutTime = new ElapsedTime();
     }
 
-    // Called when the command is initially scheduled.
+    /**
+     * Computes the target ending angle, resets the PID controller, and starts timers.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void initialize() {
-
-        // our current facing angle
+        // Current heading from gyro
         double ourcurrentangle = RobotContainer.gyro.getYawAngle();
 
-        // set our ending angle based on whether angle is relative or absolute
+        // Calculate target end angle
         if (m_relative)
             m_endangle = ourcurrentangle + m_angle;
         else
             m_endangle = m_angle;
 
-        // reset PID controller
+        // Reset controller and timers
         pidController.reset();
-
         m_angleerror = 0.0;
-
         OnTargetTime.reset();
         TimeOutTime.reset();
     }
 
-    // Called every time the scheduler runs while the command is scheduled.
+    /**
+     * Periodically computes heading error via Utils.AngleDifference, updates PID output, and commands rotation.
+     *
+     * @author gbuckholtz
+     */
     @Override
-    public void execute()
-    {
-        // determine speed to rotate robot
+    public void execute() {
+        // Compute wrapped angle difference
         m_angleerror = Utils.AngleDifference(m_endangle, RobotContainer.gyro.getYawAngle());
 
-        // only integrate if within 10deg
+        // Only integrate when within 10 degrees of target to prevent windup
         if (Math.abs(m_angleerror) < 10.0)
             pidController.setI(ki);
         else
             pidController.setI(0.0);
 
-
-        // execute PID controller
+        // Compute rotational velocity from PID
         m_rotatespeed = pidController.calculate(m_angleerror);
 
-        // rotate robot
+        // Apply rotation to drivetrain
         RobotContainer.drivesystem.RobotDrive(0.0, 0.0, m_rotatespeed);
 
-        // if we are within target, allow timer to count up
-        if (Math.abs(m_angleerror) >=3.0)
+        // Reset on-target timer if error exceeds 3 degrees
+        if (Math.abs(m_angleerror) >= 3.0)
             OnTargetTime.reset();
     }
 
-    // Called once the command ends or is interrupted.
+    /**
+     * Halts drivetrain rotation when the command finishes or is interrupted.
+     *
+     * @author gbuckholtz
+     *
+     * @param interrupted true if interrupted by the scheduler
+     */
     @Override
     public void end(boolean interrupted) {
-        // stop robot
-        RobotContainer.drivesystem.RobotDrive(0.0,0.0, 0.0);
+        // Stop robot drive
+        RobotContainer.drivesystem.RobotDrive(0.0, 0.0, 0.0);
     }
 
-    // Returns true when the command should end.
+    /**
+     * Determines whether the robot has settled on target for >= 0.25 seconds, or if the timeout has elapsed.
+     *
+     * @author gbuckholtz
+     *
+     * @return true when on-target condition or timeout is satisfied
+     */
     @Override
     public boolean isFinished() {
-        // we are finished when within tolerance of target for required duration,
-        // or have timed out
-        return (OnTargetTime.seconds()>0.25 || TimeOutTime.seconds() >=m_timeout);
+        return (OnTargetTime.seconds() > 0.25 || TimeOutTime.seconds() >= m_timeout);
     }
 }
