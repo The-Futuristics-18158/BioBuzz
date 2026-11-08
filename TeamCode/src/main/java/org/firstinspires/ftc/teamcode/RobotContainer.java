@@ -23,7 +23,6 @@ import org.firstinspires.ftc.teamcode.Commands.Intake.VacuumModeOff;
 import org.firstinspires.ftc.teamcode.Commands.Intake.VacuumModeOn;
 import org.firstinspires.ftc.teamcode.Commands.UptakeRampControle;
 import org.firstinspires.ftc.teamcode.Subsystems.Cameras.LimeLight;
-import org.firstinspires.ftc.teamcode.Subsystems.Cameras.RampCamera;
 import org.firstinspires.ftc.teamcode.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Subsystems.Sensors.GoalTargeting;
 import org.firstinspires.ftc.teamcode.Subsystems.Sensors.UptakeSensor;
@@ -40,47 +39,32 @@ import org.firstinspires.ftc.teamcode.Utility.AutoFunctions;
 
 import java.util.List;
 
-/** TODO
- * Adjust UptakeSubsystem to use one servo instead of two, and update all commands that use it    (no uptake)
- * Adjust Flywheel to use two motors instead of one, and update all commands that use it (in progress)
- * Remove Operator controls and references to it, or adjust to be used for something else         (completed)
- * Adjust shooting commands to not need to decide left vs right
- * Add constant tracking for the turret to the goal using the limelight
- * refactor ClimbSubsystem code to work with the DriveTrain
+/**
+ * RobotContainer manages the robot's hardware instances, subsystem instantiations,
+ * gamepad mappings, alliance configurations, and periodic scheduler executions.
  *
- *
- * Update pinpointDriver.setOffsets() with correct values, line 48 of PinpointOdometry.java (completed)
- * Update Drive Kinematics with correct values, lines 31-32 of DriveTrain.java (completed)
- * Adjust ShotBlock subsystem (completed)
- * Adjust HoodTilt (completed)
- * Add the turret's subsystem (completed)
- * Remove code related to colour detection and pattern matching (completed)
-    * Remove Obelisk.java and references to it                  (completed)
-    * Remove code related to artifact colour detection          (completed)
-        * Remove references to ColourSensor subsystem           (completed)
+ * @author gbuckholtz
  */
-
 public class RobotContainer {
 
-    // active OpMode - used so any subsystem and command and access it and its members
+    // Active OpMode instance
     public static CommandOpMode ActiveOpMode;
 
-    // team alliance color = false if robot on blue alliance, true for red
+    // Alliance configuration (true = Red Alliance, false = Blue Alliance)
     public static boolean isRedAlliance;
 
-    // FTC dashboard and telemetries
-    //public static Panels Panels;
+    // Telemetry subsystem
     public static TelemetrySubsystem telemetrySubsystem;
 
-    // timer used to determine how often to run scheduler periodic
+    // Timing tracking
     private static ElapsedTime timer;
     public static ElapsedTime exectimer;
 
-    // create robot GamePads
+    // Gamepad wrappers
     public static GamepadEx driverOp;
     public static GamepadEx toolOp;
 
-    // create pointers to robot subsystems
+    // Subsystems
     public static Gyro gyro;
     public static PinpointOdometry odometryPod;
     public static DriveTrain drivesystem;
@@ -90,67 +74,67 @@ public class RobotContainer {
     public static Intake intake;
     public static Flywheel shooter;
     public static LimeLight limeLight;
-    //public static RampCamera rampCamera;
     public static UptakeSensor uptakeSensor;
     public static GoalTargeting targeting;
     public static Blinkin ledsubsystem;
 
-
-    // Angle of the robot at the start of auto
+    // Starting angles for Autonomous
     public static double RedStartAngle = 90;
     public static double BlueStartAngle = -90;
     public static boolean isVacuuming = false;
     public static boolean safeZone;
 
-    // List of robot control and expansion hubs - used for caching of I/O
+    // Lynx expansion hubs for manual bulk caching
     static List<LynxModule> allHubs;
 
-    // Robot Modes
-    public enum Modes { Off, AutoInit, Auto, TeleOpInit, TeleOp}
+    // Robot operational modes
+    public enum Modes { Off, AutoInit, Auto, TeleOpInit, TeleOp }
     private static Modes CurrentRobotMode;
 
     public static double intervaltime;
 
-    /**Robot initialization - common to both auto and teleop
-     * @param mode A value from the Modes enum representing the current opmode being run, valid Modes as of 2/9/2026: Off, AutoInit, Auto, TeleOp
-     * @param RedAlliance True if red alliance, false if blue alliance
+    /**
+     * Initializes all robot hardware, subsystems, timers, and manual Lynx bulk caching.
+     * Common initialization routine for both Autonomous and TeleOp OpModes.
+     *
+     * @author gbuckholtz
+     *
+     * @param mode active CommandOpMode instance
+     * @param RedAlliance true if red alliance, false if blue alliance
      */
     public static void Init(CommandOpMode mode, boolean RedAlliance) {
-
-        // save pointer to active OpMode
+        // Save pointer to active OpMode
         ActiveOpMode = mode;
 
-        // set alliance colour
+        // Set alliance color
         isRedAlliance = RedAlliance;
 
-        // set robot mode - robot is off until we have initialized
+        // Initialize mode to Off
         CurrentRobotMode = Modes.Off;
 
-        // create list of robot control and expansion hubs
-        // set each for manual caching - cache updated in periodic()
+        // Set manual bulk caching mode for all Lynx hubs to optimize I/O polling
         allHubs = ActiveOpMode.hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : allHubs) {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
 
-        // create and reset timer
+        // Initialize timers
         timer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         timer.reset();
         exectimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-        timer.reset();
+        exectimer.reset();
 
-        // set up dashboard and various telemetries
-        // Panels = new Panels();
+        // Initialize telemetry subsystem
         telemetrySubsystem = new TelemetrySubsystem();
 
-        // cancel any commands previously running by scheduler
+        // Clear any lingering scheduled commands
         CommandScheduler.getInstance().cancelAll();
 
-        // create gamepads
+        // Instantiate gamepads
         driverOp = new GamepadEx(ActiveOpMode.gamepad1);
         toolOp = new GamepadEx(ActiveOpMode.gamepad2);
 
-        // create systems
+        // Instantiate subsystems
         gyro = new Gyro();
         odometryPod = new PinpointOdometry();
         drivesystem = new DriveTrain();
@@ -160,213 +144,180 @@ public class RobotContainer {
         intake = new Intake();
         shooter = new Flywheel();
         limeLight = new LimeLight();
-        //rampCamera = new RampCamera("RampCam");
         uptakeSensor = new UptakeSensor();
         targeting = new GoalTargeting();
-        //ledsubsystem = new Blinkin();
     }
 
-    /**Init teleop runs when you hit play*/
+    /**
+     * Configures TeleOp-specific default commands and driver/operator button mappings.
+     *
+     * @author gbuckholtz
+     */
     public static void Init_TeleOp() {
-
-        // robot is in teleop mode
+        // Set mode to TeleOp
         CurrentRobotMode = Modes.TeleOp;
 
-        // set drivetrain default command to manual driving mode
+        // Default drivetrain command: manual field-oriented drive
         drivesystem.setDefaultCommand(new ManualDrive());
 
-//              -------------------------- (Driver) Odometry Reset --------------------------
+        // (Driver) Odometry Reset: BACK button resets pose to alliance origin
+        driverOp.getGamepadButton(GamepadKeys.Button.BACK).whenPressed(new InstantCommand(() -> odometry.setCurrentPos(
+                AutoFunctions.redVsBlue(new Pose2d(0.0, 0.0, new Rotation2d(Math.toRadians(-90.0)))))));
 
-        driverOp.getGamepadButton(GamepadKeys.Button.BACK).whenPressed(new InstantCommand(()-> odometry.setCurrentPos
-                (AutoFunctions.redVsBlue(new Pose2d(0.0, 0.0, new Rotation2d(Math.toRadians(-90.0)))))));
-
-
-//              -------------------------- (Driver) Shooting Controls  --------------------------
-
+        // (Driver) Shooting Controls: RIGHT_BUMPER executes shooting sequence
         driverOp.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenHeld(new ShotSequence());
 
+        // (Driver) Vacuum Mode: Y button toggles vacuum mode on/off
         driverOp.getGamepadButton(GamepadKeys.Button.Y).toggleWhenPressed(new VacuumModeOn(), new VacuumModeOff());
 
-//              -------------------------- (Driver) Intake Systems --------------------------
+        // (Driver) Intake Systems: LEFT_BUMPER runs intake and uptake control in parallel
+        driverOp.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenHeld(
+                new ParallelCommandGroup(new IntakeCommand(), new UptakeRampControle()));
 
-        driverOp.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenHeld(new ParallelCommandGroup(new IntakeCommand(), new UptakeRampControle()));
+        // (Driver) Reverse Intake: LEFT_TRIGGER reverses intake
+        Trigger leftTrigger = new Trigger(() -> (RobotContainer.ActiveOpMode.gamepad1.left_trigger > 0.5));
+        leftTrigger.whileActiveOnce(new ReverseIntakeCommand());
 
-        Trigger mytrigger = new Trigger(()-> (RobotContainer.ActiveOpMode.gamepad1.left_trigger > 0.5));
-        mytrigger.whileActiveOnce(new ReverseIntakeCommand());
-
+        // (Driver) Intake Sequence: B button runs full intake sequence
         driverOp.getGamepadButton(GamepadKeys.Button.B).whenHeld(new IntakeSequence());
 
+        // (Driver) Hunt Mode: A button runs hunt mode
         driverOp.getGamepadButton(GamepadKeys.Button.A).whenHeld(new HuntModeCommand());
 
+        // (Driver) Ghost TeleOp: X button runs autonomous routine
         driverOp.getGamepadButton(GamepadKeys.Button.X).whenHeld(new GhostTeleOp());
 
-//             -------------------------- Test Buttions/Manual Controls --------------------------
+        // (Driver) Hood Manual Trim: DPAD LEFT / RIGHT increments hood angle
+        driverOp.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(
+                new InstantCommand(() -> hoodtilt.SetHoodPosition(hoodtilt.GetHoodPosition() - 0.01)));
+        driverOp.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(
+                new InstantCommand(() -> hoodtilt.SetHoodPosition(hoodtilt.GetHoodPosition() + 0.01)));
 
+        // (Operator) Auto Targeting: START button toggles automated targeting
+        toolOp.getGamepadButton(GamepadKeys.Button.START).whenPressed(
+                new InstantCommand(() -> targeting.EnableAutoTargeting(!targeting.isAutoTargetingEnabled())));
 
-        // Hood Adjust
-        driverOp.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(new InstantCommand(()->hoodtilt.SetHoodPosition(hoodtilt.GetHoodPosition()-0.01)));
-        driverOp.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(new InstantCommand(()->hoodtilt.SetHoodPosition(hoodtilt.GetHoodPosition()+0.01)));
-
-//      -------------------------- (Driver) Turning To Exact Angle --------------------------
-//        // Turn To 0 degrees
-//        driverOp.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(new TurnTo(AutoFunctions.redVsBlue(0.0), false, 5.0));
-//
-//        // Turn To 90 degrees
-//        driverOp.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(new TurnTo(AutoFunctions.redVsBlue(-90.0), false, 5.0));
-//
-//        // Turn To 180 degrees
-//        driverOp.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(new TurnTo(AutoFunctions.redVsBlue(180.0), false, 5.0));
-//
-//        // Turn To 270 degrees
-//        driverOp.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(new TurnTo(AutoFunctions.redVsBlue(90.0), false, 5.0));
-
-
-        //             -------------------------- Operator Controls --------------------------
-
-        // enable/disable auto targeting
-        toolOp.getGamepadButton(GamepadKeys.Button.START).whenPressed(new InstantCommand(()->targeting.EnableAutoTargeting(!targeting.isAutoTargetingEnabled())));
-
-
-        // OLD - not used - to be deleted
-        // manual rotate turret
-//        toolOp.getGamepadButton(GamepadKeys.Button.X).whenHeld(new SequentialCommandGroup(
-//                new InstantCommand(()-> targeting.EnableAutoTargeting(false)),
-//                new ManualRotateTurret(true)));
-//        toolOp.getGamepadButton(GamepadKeys.Button.B).whenHeld(new SequentialCommandGroup(
-//                new InstantCommand(()-> targeting.EnableAutoTargeting(false)),
-//                new ManualRotateTurret(false)));
-
-
-        //      -------------------------- Examples --------------------------
-        // bind commands to buttons
-        // bind gyro reset to back button.
-        // Note: since reset is very simple command, we can just use 'InstandCommand'
-        // instead of creating a full command, just to run one line of java code.
-
-        // example turn to command
-        // driverOp.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenHeld((new TurnTo(AutoFunctions.redVsBlue(0.0), true, 3.0)));
-
-        // example sequential command
-        // driverOp.getGamepadButton(GamepadKeys.Button.Y).whileHeld(new ExampleCommandGroup());
-
-
-        // example of binding more complex command to a button. This would be in a separate command file
-        // driverOp.getGamepadButton(GamepadKeys.Button.BACK).whenPressed(new ExampleCommand());
-
-        // add other button commands here
-        // Note: can trigger commands on
-        // whenPressed - once when button is pressed
-        // whenHeld - runs command while button held, but does not restart if command ends
-        // whileHeld - runs command while button held, but will restart command if it ends
-        // whenReleased - runs once when button is released
-        // togglewhenPressed - turns command on and off at each button press
-
-        // set limelight to apriltag pipeline
+        // Set Limelight to AprilTag pipeline (0)
         limeLight.SetPipelineMode(0);
     }
 
-    /**Robot starting code for teleop - This runs once at start of teleop*/
+    /**
+     * Called once when the TeleOp match period begins.
+     *
+     * @author gbuckholtz
+     */
     public static void Start_TeleOp() {
-
-        // robot is in teleop mode
+        // Set mode to TeleOp
         CurrentRobotMode = Modes.TeleOp;
-
     }
 
-    /**Robot initialization for auto - This runs once at initialization of auto*/
+    /**
+     * Initializes robot configuration specifically for Autonomous mode.
+     *
+     * @author gbuckholtz
+     */
     public static void Init_Auto() {
-
-        // robot is in auto init mode
+        // Set mode to AutoInit
         CurrentRobotMode = Modes.AutoInit;
 
-        // set limelight to apriltag pipeline
+        // Switch Limelight to AprilTag pipeline
         limeLight.SetPipelineMode(0);
     }
 
-    /**Robot starting code for auto - This runs once at start of auto*/
+    /**
+     * Called once when the Autonomous match period begins.
+     *
+     * @author gbuckholtz
+     */
     public static void Start_Auto() {
-
-        // robot is in auto mode
+        // Set mode to Auto
         CurrentRobotMode = Modes.Auto;
 
-        // set limelight to apriltag pipeline
+        // Switch Limelight to AprilTag pipeline
         limeLight.SetPipelineMode(0);
-
-        // set default shooter speed control
-        //shooter.setDefaultCommand(new DefaultShooterSpeed());
     }
 
-
-    /**call this function periodically to operate scheduler*/
+    /**
+     * Main periodic update loop. Clears Lynx hub bulk cache, runs the FTCLib CommandScheduler
+     * at 50 Hz (20ms interval), evaluates shot zones, and updates telemetry.
+     *
+     * @author gbuckholtz
+     */
     public static void Periodic() {
-
-        // clear I/O cache for robot control and expansion hubs
+        // Clear bulk caching on all Lynx hardware modules
         for (LynxModule hub : allHubs) {
             hub.clearBulkCache();
         }
 
-        // actual interval time
+        // Measure loop interval
         intervaltime = timer.milliseconds();
 
-        // execute robot periodic function 50 times per second (=50Hz)
-        if (intervaltime>=20.0) {
+        // Execute scheduled routines at 50 Hz
+        if (intervaltime >= 20.0) {
             safeZone = RobotContainer.targeting.IsRobotInAllowableShotZone();
 
-            // reset timer
+            // Reset loop timers
             timer.reset();
-
-            // start execution timer
             exectimer.reset();
 
-            if (isVacuuming){
-                if (!safeZone){
-                    new VacuumModeOff().schedule();
-                }
+            // Deactivate vacuum mode if outside safe zone
+            if (isVacuuming && !safeZone) {
+                new VacuumModeOff().schedule();
             }
 
-            // run scheduler
+            // Run command scheduler
             CommandScheduler.getInstance().run();
 
-            // report robot odometry on robot controller
+            // Update odometry and loop timing telemetry
             telemetrySubsystem.odometryTelemetry();
-
-            // report time interval on robot controller
             telemetrySubsystem.timerOdometry();
-
-            //telemetrySubsystem.addData("Turret Target (degrees): ", turret.getTurretTargetDegrees());
-            //telemetrySubsystem.addData("Turret Current (degrees): ", turret.getTurretDegrees());
-            //telemetrySubsystem.addData("Intake Power: ", intake.readIntakeSetPower());
-            //telemetrySubsystem.addData("Intake Motor Speed (rps): ", intake.intakeMotorCurrentSpeed());
-
             telemetrySubsystem.addData("in shot zone", safeZone);
             telemetrySubsystem.addData("isVacuuming", isVacuuming);
-
             telemetrySubsystem.update();
         }
     }
 
-
-    /**Gets the current alliance colour
-     * @return True if red alliance, false if blue alliance
+    /**
+     * Checks whether the robot is currently configured for the Red Alliance.
+     *
+     * @author gbuckholtz
+     *
+     * @return true if Red Alliance, false if Blue Alliance
      */
     public static boolean isRedAlliance() {
         return isRedAlliance;
     }
 
-    /**Returns the current robot mode
-     * @return a value from the Modes enum, valid Modes as of 2/9/2026: Off, AutoInit, Auto, TeleOp*/
-    public static Modes GetCurrentMode() { return CurrentRobotMode; }
+    /**
+     * Retrieves the current robot operational mode.
+     *
+     * @author gbuckholtz
+     *
+     * @return current Modes enum value (Off, AutoInit, Auto, TeleOpInit, TeleOp)
+     */
+    public static Modes GetCurrentMode() {
+        return CurrentRobotMode;
+    }
 
-    /**Gets our most commonly used starting angles for auto when we're on blue alliance
-     * @return The angle of the robot when it's facing the red alliance drive team*/
+    /**
+     * Retrieves the standard starting orientation angle for the Blue Alliance in Autonomous.
+     *
+     * @author gbuckholtz
+     *
+     * @return blue alliance starting angle in degrees (-90.0)
+     */
     public static double getBlueStartAngle() {
         return BlueStartAngle;
     }
 
-    /**Gets our most commonly used starting angles for auto when we're on red alliance
-     * @return The angle of the robot when it's facing the blue alliance drive team*/
+    /**
+     * Retrieves the standard starting orientation angle for the Red Alliance in Autonomous.
+     *
+     * @author gbuckholtz
+     *
+     * @return red alliance starting angle in degrees (90.0)
+     */
     public static double getRedStartAngle() {
         return RedStartAngle;
     }
-
 }

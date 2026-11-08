@@ -4,45 +4,47 @@ import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
-/*
- * This file contains an example of an "OpMode".
- * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
- * The names of OpModes appear on the menu of the FTC Driver Station.
- * When a selection is made from the menu, the corresponding OpMode is executed.
+/**
+ * TeleOp OpMode for the Red Alliance.
+ * Initializes the robot container for red alliance and runs the periodic command scheduler loop.
+ *
+ * @author gbuckholtz
  */
-@TeleOp(name="Red TeleOp", group="OpMode")
-//@Disabled
+@TeleOp(name = "Red TeleOp", group = "OpMode")
 public class RedTeleop extends CommandOpMode {
 
-    // Initialize all objects, set up subsystems, etc...
+    /**
+     * Initializes all robot subsystems, configures TeleOp controls, sets alliance to red,
+     * and waits for match start.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void initialize() {
-
-        // initialize robot
-        // set team alliance color to red (isRedAlliance=true)
+        // Initialize robot for Red Alliance (isRedAlliance = true)
         RobotContainer.Init(this, true);
 
-        // perform any teleop initialization
+        // Perform TeleOp-specific initialization
         RobotContainer.Init_TeleOp();
 
-        // wait for start button
+        // Wait for match play button press
         waitForStart();
 
-        // if start button has been pressed
+        // Start TeleOp commands if OpMode is active
         if (opModeIsActive()) {
-
-            // ---------- teleop command ----------
-
-            // add any command to run automatically at start of teleop
+            // Schedule start-of-teleop commands if needed
         }
-
     }
 
-    // Run Op Mode. Is called after user presses play button
-    // called continuously
+    /**
+     * Main execution loop called continuously while the OpMode is active.
+     * Executes robot container periodic routines.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void run() {
-        // execute robot periodic function
+        // Run robot periodic processing
         RobotContainer.Periodic();
     }
 }

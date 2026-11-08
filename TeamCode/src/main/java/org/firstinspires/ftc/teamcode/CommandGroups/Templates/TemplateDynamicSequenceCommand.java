@@ -3,60 +3,70 @@ package org.firstinspires.ftc.teamcode.CommandGroups.Templates;
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 
-
-// command template
+/**
+ * Template class demonstrating how to dynamically construct and schedule
+ * a SequentialCommandGroup at runtime during the initialize phase.
+ *
+ * @author gbuckholtz
+ */
 public class TemplateDynamicSequenceCommand extends CommandBase {
 
-    // the sequential command that we are creating and running
-    SequentialCommandGroup cmd;
+    // The sequential command group created and executed dynamically
+    private SequentialCommandGroup cmd;
 
-
-    // constructor
+    /**
+     * Constructs a TemplateDynamicSequenceCommand.
+     *
+     * @author gbuckholtz
+     */
     public TemplateDynamicSequenceCommand() {
-
-        // add subsystem requirements (if any) - for example:
-        //addRequirements(RobotContainer.drivesystem);
     }
 
-    // This method is called once when command is started
+    /**
+     * Dynamically builds the command sequence based on runtime state and initializes it.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void initialize() {
-
-        // TODO - use this space to dynamically create command sequence
+        // Instantiate the dynamic sequence
         cmd = new SequentialCommandGroup();
 
-        // add first sequence
-        // cmd.addCommands(new InitialCommands);
-
-        // conditionally add next in sequence
-        // if (this)
-        // cmd.addCommands(new DoThis());
-        // else
-        // cmd.addCommands(new DoThat());
-
-
-        // initialize the sequence command
+        // Initialize and start the sequence
         cmd.initialize();
     }
 
-    // This method is called periodically while command is active
+    /**
+     * Periodically executes the dynamic command sequence.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void execute() {
         cmd.execute();
     }
 
-    // This method to return true only when command is to finish. Otherwise return false
+    /**
+     * Checks if the dynamically constructed command sequence has completed.
+     *
+     * @author gbuckholtz
+     *
+     * @return true when the sequence is finished, false otherwise
+     */
     @Override
     public boolean isFinished() {
-        // we are finished only when the sequence is finished
         return cmd.isFinished();
     }
 
-    // This method is called once when command is finished.
+    /**
+     * Ends the dynamic sequence when finished or interrupted.
+     *
+     * @author gbuckholtz
+     *
+     * @param interrupted true if interrupted by the scheduler
+     */
     @Override
     public void end(boolean interrupted) {
-        // we are ending, end the sequence
         cmd.end(interrupted);
     }
-
 }
