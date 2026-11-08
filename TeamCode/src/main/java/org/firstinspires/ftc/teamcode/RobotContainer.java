@@ -14,7 +14,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.CommandGroups.TeleOpSequences.GhostTeleOp;
 import org.firstinspires.ftc.teamcode.CommandGroups.TeleOpSequences.IntakeSequence;
-import org.firstinspires.ftc.teamcode.CommandGroups.TeleOpSequences.ShotSequence;
 import org.firstinspires.ftc.teamcode.Commands.Drive.ManualDrive;
 import org.firstinspires.ftc.teamcode.Commands.Intake.HuntMode.HuntModeCommand;
 import org.firstinspires.ftc.teamcode.Commands.Intake.ReverseIntakeCommand;
@@ -23,8 +22,7 @@ import org.firstinspires.ftc.teamcode.Commands.Intake.VacuumModeOff;
 import org.firstinspires.ftc.teamcode.Commands.Intake.VacuumModeOn;
 import org.firstinspires.ftc.teamcode.Commands.UptakeRampControle;
 import org.firstinspires.ftc.teamcode.Subsystems.Cameras.LimeLight;
-import org.firstinspires.ftc.teamcode.Subsystems.Cameras.RampCamera;
-import org.firstinspires.ftc.teamcode.Subsystems.Intake;
+import org.firstinspires.ftc.teamcode.Subsystems.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Subsystems.Sensors.GoalTargeting;
 import org.firstinspires.ftc.teamcode.Subsystems.Sensors.UptakeSensor;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter.Flywheel;
