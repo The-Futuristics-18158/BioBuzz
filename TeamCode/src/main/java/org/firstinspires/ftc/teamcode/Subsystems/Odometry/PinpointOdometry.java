@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.Subsystems.Odometry;
 
-import com.arcrobotics.ftclib.command.Robot;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.geometry.Pose2d;
 import com.arcrobotics.ftclib.geometry.Rotation2d;
@@ -9,94 +8,96 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.teamcode.Commands.Utility.Pause;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
 /**
- * The Pinpoint Odometry class is a subsystem that manages the odometry pods using the Pinpoint Odometry Computer hardware.
- * It extends the SubsystemBase class from FTCLib.
+ * Subsystem that manages dead-wheel odometry pods via the goBILDA Pinpoint Odometry Computer.
+ * Tracks field position (X, Y) and heading using dedicated high-speed sensor fusion.
+ *
+ * @author gbuckholtz
  */
 public class PinpointOdometry extends SubsystemBase {
 
-
-    // Create pinpoint driver object
-    GoBildaPinpointDriver pinpointDriver;
-
-
-    // Encoder values from each odometry pod
-    double OdometryLeftEncoder;
-    double OdometryRightEncoder;
-    double OdometryFrontEncoder;
-
-    Pose2D myPose2D;
+    // GoBilda Pinpoint hardware driver
+    private GoBildaPinpointDriver pinpointDriver;
 
     /**
-     * Constructor for the OctQuad class.
-     * Initializes the OctoQuad hardware and resets encoders.
+     * Initializes the Pinpoint Odometry subsystem, configures pod encoder directions,
+     * encoder resolution, sensor physical offsets, and resets position and IMU heading.
+     *
+     * @author gbuckholtz
      */
     public PinpointOdometry() {
-        // Set up pinpoint driver object
+        // Retrieve the Pinpoint driver from the active OpMode's hardware map
         pinpointDriver = RobotContainer.ActiveOpMode.hardwareMap.get(GoBildaPinpointDriver.class, "PinpointDriver");
 
-        // Set encoder directions
+        // Set encoder directions for forward and reversed tracking pods
         pinpointDriver.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
 
-        // Set encoder resolution
+        // Configure encoder resolution corresponding to goBILDA 4-bar swingarm pods
         pinpointDriver.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
 
-        // set x and y offset from centre
-        // ken measures -70.5 for xOffset
-        // ken measures -65.0 for yOffset (note sign difference)
-        pinpointDriver.setOffsets(+44.0,108.0, DistanceUnit.MM);
-        //pinpointDriver.setOffsets(-85.0,76.5, DistanceUnit.MM);
+        // Configure X and Y pod offsets from the robot center of rotation in millimeters
+        pinpointDriver.setOffsets(+44.0, 108.0, DistanceUnit.MM);
 
-        // Reset pinpoint driver
+        // Reset pinpoint driver position and integrated IMU heading
         pinpointDriver.resetPosAndIMU();
 
-        // wait for pinpoint to finish resetting before continuing with initialization
+        // Pause briefly for the Pinpoint computer to complete initialization and calibration
         RobotContainer.ActiveOpMode.sleep(300);
-
     }
 
     /**
-     * The periodic method is called periodically by the scheduler.
-     * Reads the encoder values from the odometry pods.
+     * Periodic method called periodically by the command scheduler to poll the Pinpoint driver.
+     *
+     * @author gbuckholtz
      */
     @Override
     public void periodic() {
-        pinpointDriver.update(); // the fast one
+        // Poll and update internal odometry tracking data from the Pinpoint device
+        pinpointDriver.update();
     }
 
     /**
-     * Resets the odometry position and IMU heading to zero.
+     * Resets the robot odometry position and integrated IMU heading to zero.
+     *
+     * @author gbuckholtz
      */
-    public void reset(){
+    public void reset() {
+        // Reset device position and IMU heading
         pinpointDriver.resetPosAndIMU();
     }
 
     /**
-     * Sets the robot's pose to the specified Pose2d.
+     * Overrides and sets the robot's current field position and heading to the specified Pose2d.
      *
-     * @param pose the desired Pose2d to set the robot's position and heading
+     * @author gbuckholtz
+     *
+     * @param pose the desired Pose2d to set the robot position (in meters) and heading (in radians)
      */
-    public void SetPose(Pose2d pose){
+    public void SetPose(Pose2d pose) {
+        // Convert FTCLib Pose2d into SDK Pose2D object in meters and radians
         Pose2D newPose = new Pose2D(DistanceUnit.METER, pose.getX(), pose.getY(), AngleUnit.RADIANS, pose.getHeading());
 
+        // Update heading and position on the Pinpoint computer
         pinpointDriver.setHeading(pose.getHeading(), AngleUnit.RADIANS);
         pinpointDriver.setPosition(newPose);
-
     }
 
-
     /**
-     * gets the current pose of the robot
+     * Retrieves the current field position and heading of the robot.
      *
-     * @return A pose2d with the X & Y position in meters and the heading in radians
+     * @author gbuckholtz
+     *
+     * @return Pose2d containing X and Y positions in meters and heading in radians
      */
-    public Pose2d GetPose(){
-        Pose2d pose = new Pose2d(pinpointDriver.getPosX(DistanceUnit.METER),
+    public Pose2d GetPose() {
+        // Read position in meters and heading in radians from Pinpoint device
+        Pose2d pose = new Pose2d(
+                pinpointDriver.getPosX(DistanceUnit.METER),
                 pinpointDriver.getPosY(DistanceUnit.METER),
                 new Rotation2d(pinpointDriver.getHeading(AngleUnit.RADIANS)));
+
         return pose;
     }
 }

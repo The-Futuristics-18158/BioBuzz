@@ -5,67 +5,78 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
 /**
- * Subsystem to Tilt Hood to Desired Angle
- * 0.0 <= Angle <= 0.1
+ * Subsystem to tilt the shooter hood to the desired angle to control shot trajectory.
+ * Valid angle positions range between 0.0 and 0.1.
  *
  * @author superzokabear
  */
-//@Configurable
 public class HoodTilt extends SubsystemBase {
 
-    // Local objects and variables here
-    public static double hoodPosition; // use public static when using panels, otherwise make private
+    // Current requested hood servo position
+    public static double hoodPosition;
     private Servo TiltServo;
 
     // Servo movement limits
-    public final double maxAngle = 0.1;// max angle is 0.1
-    public final double minAngle = 0.0; // min angle is 0.0
-    // note: use 0.3 to re-calibrate hood gear position
-    // 0.3 is at position where hood gear just detaches from servo gear.
+    public final double maxAngle = 0.1; // Maximum allowable angle position is 0.1
+    public final double minAngle = 0.0; // Minimum allowable angle position is 0.0
 
-    /** Place code here to initialize subsystem */
+    /**
+     * Initializes the shooter hood tilt subsystem, configures servo direction,
+     * and sets default position to minimum angle.
+     *
+     * @author superzokabear
+     */
     public HoodTilt() {
-        // create servo and configure
+        // Retrieve the tilt servo from the active OpMode's hardware map
         TiltServo = RobotContainer.ActiveOpMode.hardwareMap.get(Servo.class, "inniOuttiServo");
         TiltServo.setDirection(Servo.Direction.FORWARD);
 
-        // set default position to min angle
+        // Set default position to minimum angle
         hoodPosition = minAngle;
     }
 
-    /** Method called periodically by the scheduler
-     * Place any code here you wish to have run periodically */
+    /**
+     * Method called periodically by the command scheduler to constrain and apply hood tilt servo positions.
+     *
+     * @author superzokabear
+     */
     @Override
     public void periodic() {
-
-        // ensure hood tilt within allowable limits
-        // this code needed for panels so user does not enter value outside range
-        if (hoodPosition>maxAngle)
+        // Ensure hood tilt position remains within safe mechanical limits
+        if (hoodPosition > maxAngle)
             hoodPosition = maxAngle;
-        if (hoodPosition<minAngle)
+        if (hoodPosition < minAngle)
             hoodPosition = minAngle;
 
-        // only change hood position if robot in auto or teleop modes
+        // Only update servo position when actively in Autonomous or TeleOp modes
         if (RobotContainer.GetCurrentMode() == RobotContainer.Modes.Auto ||
-                RobotContainer.GetCurrentMode() == RobotContainer.Modes.TeleOp)
-
-            // set hood position
+                RobotContainer.GetCurrentMode() == RobotContainer.Modes.TeleOp) {
+            // Apply commanded position to the servo
             TiltServo.setPosition(hoodPosition);
+        }
     }
 
-
-    /**Sets shooter hood position
-     * @param position Desired position between 0.3 and 1.0
-     *      Last updated for Canada Cup Robot
+    /**
+     * Sets the target position for the shooter hood.
+     *
+     * @author superzokabear
+     *
+     * @param position desired servo position between minAngle (0.0) and maxAngle (0.1)
      */
-    public void SetHoodPosition(double position){
+    public void SetHoodPosition(double position) {
+        // Update commanded hood position
         hoodPosition = position;
     }
 
-    /**Returns shooter hood position
+    /**
+     * Retrieves the current target position of the shooter hood.
+     *
+     * @author superzokabear
+     *
+     * @return current hood servo target position
      */
     public double GetHoodPosition() {
+        // Return current commanded position
         return hoodPosition;
     }
-
 }

@@ -5,56 +5,73 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
 /**
- * Subsystem to raise/lower intake ramp
- * raised position = 1.0
- * lowered position = 0.44
+ * Subsystem to raise and lower the intake/shooting ramp.
+ * Raised position (1.0) feeds artifacts into the flywheel for shooting;
+ * Lowered position (0.44) collects artifacts from the field floor.
  *
  * @author superzokabear
  */
 public class RampLift extends SubsystemBase {
 
-    // Local objects and variables here
+    // Ramp lift servo hardware
     private Servo RampServo;
 
-    // servo positions
+    // Defined servo positions
     private final double RaisedPosition = 1.0;
     private final double LoweredPosition = 0.44;
 
-    /** Place code here to initialize subsystem */
+    /**
+     * Initializes the ramp lift subsystem and lowers the ramp to the collection position.
+     *
+     * @author superzokabear
+     */
     public RampLift() {
-
-        // create servo and configure
+        // Retrieve ramp lift servo from the active OpMode's hardware map
         RampServo = RobotContainer.ActiveOpMode.hardwareMap.get(Servo.class, "rampServo");
 
-        // set default ramp position to low
+        // Set initial ramp position to lowered state
         Lower();
     }
 
-    /** Method called periodically by the scheduler
-     * Place any code here you wish to have run periodically */
+    /**
+     * Method called periodically by the command scheduler.
+     *
+     * @author superzokabear
+     */
     @Override
     public void periodic() {
+        // Periodic logic if needed
     }
-
-    // place special subsystem methods here
 
     /**
-     * Raises the intake ramp to shoot
-     * <p>
+     * Raises the intake ramp to the upper position to feed artifacts into the flywheel for shooting.
+     *
+     * @author superzokabear
      */
-    public void Raise(){RampServo.setPosition(RaisedPosition);}
-
-    /**Lowers the intake ramp
-     * <p>
-     */
-    public void Lower(){RampServo.setPosition(LoweredPosition);}
-
-    public boolean RampIsUp(){
-        if (RampServo.getPosition() >= 1.0){
-            return true;
-        }else {
-            return false;
-        }
+    public void Raise() {
+        // Command servo to fully raised position
+        RampServo.setPosition(RaisedPosition);
     }
 
+    /**
+     * Lowers the intake ramp to the bottom position to collect artifacts from the ground.
+     *
+     * @author superzokabear
+     */
+    public void Lower() {
+        // Command servo to lowered collection position
+        RampServo.setPosition(LoweredPosition);
+    }
+
+    /**
+     * Checks whether the intake ramp is currently in the raised position.
+     *
+     * @author superzokabear
+     *
+     * @return true if ramp position is greater than or equal to 1.0; false otherwise
+     */
+    public boolean RampIsUp() {
+        // Evaluate if servo position has reached the raised threshold
+        return RampServo.getPosition() >= 1.0;
+    }
 }

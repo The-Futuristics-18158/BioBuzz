@@ -3,26 +3,35 @@ package org.firstinspires.ftc.teamcode.Subsystems.Utils;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 
 /**
- * Place description of subsystem here
+ * Template class for creating new FTCLib subsystems.
+ * Provides basic structural scaffolding including initialization and periodic update loops.
  *
- * @author YourGithubName
+ * @author gbuckholtz
  */
 public class TemplateSubsystem extends SubsystemBase {
 
     // Local objects and variables here
 
-    /** Place code here to initialize subsystem */
+    /**
+     * Initializes the template subsystem and sets up hardware and control variables.
+     *
+     * @author gbuckholtz
+     */
     public TemplateSubsystem() {
-
+        // Initialize hardware references and local subsystem variables here
     }
 
-    /** Method called periodically by the scheduler
-     * Place any code here you wish to have run periodically */
+    /**
+     * Method called periodically by the command scheduler.
+     * Subsystem telemetry, sensor reads, and periodic control loops belong here.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void periodic() {
-
+        // Periodic subsystem logic here
     }
 
-    // place special subsystem methods here
+    // Place special subsystem methods here
 
 }

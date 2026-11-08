@@ -5,46 +5,70 @@ import org.firstinspires.ftc.teamcode.RobotContainer;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 
-
-/** Gyro Subsystem */
+/**
+ * Limelight 3A vision subsystem responsible for AprilTag fiducial detection, targeting,
+ * and Megatag2 robot field localization.
+ *
+ * @author gbuckholtz
+ */
 public class LimeLight extends SubsystemBase {
 
-    //  limelight constants
+    // Limelight hardware device interface
     private Limelight3A limeLight;
 
-
-    /** Place code here to initialize subsystem */
-    public LimeLight() { // initialize limelight in
+    /**
+     * Initializes the Limelight camera from the hardware map, configures polling rate,
+     * starts streaming, and sets pipeline mode to 0.
+     *
+     * @author gbuckholtz
+     */
+    public LimeLight() {
+        // Retrieve the Limelight hardware device from the active OpMode's hardware map
         limeLight = RobotContainer.ActiveOpMode.hardwareMap.get(Limelight3A.class, "limeLight");
-        limeLight.setPollRateHz(50); // This sets how often we ask Limelight for data (100 times per second)
-        limeLight.start(); // This tells Limelight to start looking
+
+        // Set how frequently to query Limelight for updated vision data (50 Hz)
+        limeLight.setPollRateHz(50);
+
+        // Start vision capture pipeline on the Limelight
+        limeLight.start();
+
+        // Switch to default pipeline 0
         limeLight.pipelineSwitch(0);
     }
 
-    /** Method called periodically by the scheduler
-     * Place any code here you wish to have run periodically */
+    /**
+     * Method called periodically by the scheduler.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void periodic() {
-        // tell Limelight which way robot is facing
-        //double robotYaw = RobotContainer.gyro.getYawAngle();
-        //limeLight.updateRobotOrientation(robotYaw);
+        // Future orientation updates can be passed here to aid MegaTag localization
     }
 
-
-    /**Switch between detecting obelisk id and position tags
-     * @param pipelineMode an integer representing the desired pipeline mode: 0 for obelisk id detection, 1 for position tag detection, 2 for driver camera mode
+    /**
+     * Switches the vision pipeline on the Limelight camera.
+     *
+     * @author gbuckholtz
+     *
+     * @param pipelineMode an integer representing the desired pipeline mode: 0 for obelisk/goal id detection, 1 for position tag detection, 2 for driver camera mode
      */
-    public void SetPipelineMode(int pipelineMode){
-        if (pipelineMode == 0 || pipelineMode == 1 || pipelineMode == 2){
+    public void SetPipelineMode(int pipelineMode) {
+        // Verify requested pipeline mode is valid before switching
+        if (pipelineMode == 0 || pipelineMode == 1 || pipelineMode == 2) {
             limeLight.pipelineSwitch(pipelineMode);
         }
     }
 
-    /**add description here
-     * @return what does this return?
+    /**
+     * Retrieves the latest vision detection results from the Limelight camera.
+     *
+     * @author gbuckholtz
+     *
+     * @return the latest LLResult containing fiducial results, botpose, and targeting metrics
      */
     public LLResult getLimeLightResults() {
+        // Query the latest result from the Limelight driver
         return limeLight.getLatestResult();
     }
-
 }
