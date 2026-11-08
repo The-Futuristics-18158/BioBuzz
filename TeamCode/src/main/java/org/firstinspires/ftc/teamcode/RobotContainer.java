@@ -183,7 +183,7 @@ public class RobotContainer {
 
 //              -------------------------- (Driver) Shooting Controls  --------------------------
 
-        driverOp.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenHeld(new ShotSequence());
+        //driverOp.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenHeld(new ShotSequence());
 
         driverOp.getGamepadButton(GamepadKeys.Button.Y).toggleWhenPressed(new VacuumModeOn(), new VacuumModeOff());
 

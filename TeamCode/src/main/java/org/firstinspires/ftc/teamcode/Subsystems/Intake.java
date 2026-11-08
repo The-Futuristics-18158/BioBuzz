@@ -133,14 +133,14 @@ public class Intake extends SubsystemBase {
     public void intakeRun(){ intakeRun(false);}
     public void intakeRun(boolean Agitate){
         AgitateMode = Agitate;
-        TargetSpeed = 90.0;
+        TargetSpeed = 50.0;
     }
 
     /**Run the intake at set speed (rps)*/
     public void intakeRunReducedSpeed() { intakeRunReducedSpeed(false);}
     public void intakeRunReducedSpeed(boolean Agitate) {
         AgitateMode = Agitate;
-        TargetSpeed = 75.0; // was 60.0
+        TargetSpeed = 30.0; // was 60.0
     }
 
     /**Run the intake at set speed (rps)*/
