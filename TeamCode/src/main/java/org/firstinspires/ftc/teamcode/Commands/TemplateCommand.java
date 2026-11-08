@@ -2,41 +2,65 @@ package org.firstinspires.ftc.teamcode.Commands;
 
 import com.arcrobotics.ftclib.command.CommandBase;
 
-
-// command template
+/**
+ * Template class for creating new FTCLib commands.
+ * Outlines the standard command lifecycle: initialize, execute, isFinished, and end.
+ *
+ * @author gbuckholtz
+ */
 public class TemplateCommand extends CommandBase {
 
-    // constructor
+    /**
+     * Constructs a new TemplateCommand.
+     * Declare subsystem requirements here using addRequirements().
+     *
+     * @author gbuckholtz
+     */
     public TemplateCommand() {
-
-        // add subsystem requirements (if any) - for example:
-        //addRequirements(RobotContainer.drivesystem);
+        // Add required subsystems (e.g., addRequirements(RobotContainer.drivesystem);)
     }
 
-    // This method is called once when command is started
+    /**
+     * Called once when the command is initially scheduled and started.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void initialize() {
-
+        // Reset timers or initial states
     }
 
-    // This method is called periodically while command is active
+    /**
+     * Called periodically while the command is actively scheduled.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void execute() {
-
+        // Periodic control logic
     }
 
-    // This method to return true only when command is to finish. Otherwise return false
+    /**
+     * Evaluates whether the command has completed its execution.
+     *
+     * @author gbuckholtz
+     *
+     * @return true when finished, false to continue executing
+     */
     @Override
     public boolean isFinished() {
-
         return false;
-
     }
 
-    // This method is called once when command is finished.
+    /**
+     * Called once when the command finishes or is interrupted by another command.
+     *
+     * @author gbuckholtz
+     *
+     * @param interrupted true if the command was interrupted by the scheduler, false if it completed normally
+     */
     @Override
     public void end(boolean interrupted) {
-
+        // Stop motors or reset subsystems
     }
-
 }
