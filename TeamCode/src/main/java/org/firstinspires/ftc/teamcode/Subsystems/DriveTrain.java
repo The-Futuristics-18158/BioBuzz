@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.Subsystems;
 
-
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.geometry.Translation2d;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.ChassisSpeeds;
@@ -11,204 +10,196 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
-/** DriveTrain Subsystem */
+/**
+ * Mecanum drive train subsystem.
+ * Handles robot kinematics, field-oriented and robot-oriented driving,
+ * and individual closed-loop motor PIF speed control.
+ *
+ * @author gbuckholtz
+ */
 public class DriveTrain extends SubsystemBase {
 
-    // constants for Tetrix DC Motor
+    // Constants for DC Motor
     final double MAXRPM = 6000.0;
     final double MAXRPS = MAXRPM / 60.0;
-    
-    // motor speed ticks per revolution to m/s travel speed
-    final double TICKS_PER_ROTATION = (28.0);       // encoder pulses per motor revolution
+
+    // Motor speed ticks per revolution to m/s travel speed
+    final double TICKS_PER_ROTATION = (28.0);       // Encoder pulses per motor revolution
     final double MAX_SPEED_TICKS_PER_SEC = MAXRPS * TICKS_PER_ROTATION;
-    final double WHEEL_DIA = 0.104;                   // wheel diameter in m
-    final double GEAR_RATIO = 20.0;                 // drive gear ratio
+    final double WHEEL_DIA = 0.104;                 // Wheel diameter in meters
+    final double GEAR_RATIO = 20.0;                 // Drive gear ratio
     final double TICKSPS_TO_MPS = WHEEL_DIA * Math.PI / TICKS_PER_ROTATION / GEAR_RATIO;
     final double MPS_TO_TICKSPS = 1.0 / TICKSPS_TO_MPS;
     public final double MAX_SPEED = MAXRPS * Math.PI * WHEEL_DIA / GEAR_RATIO;
 
-    // Setup Drive Kinematics Object Constants
-    final double TRACK_WIDTH = 0.34;   // Width between the left and right wheels - in m.
-    final double TRACK_LENGTH = 0.192;  // Length between the front and back wheel - in m.
+    // Kinematics physical dimensions in meters
+    final double TRACK_WIDTH = 0.34;   // Width between left and right wheels in meters
+    final double TRACK_LENGTH = 0.192; // Length between front and back wheels in meters
     private MecanumDriveKinematics driveKinematics;
 
-    // create Mecanum drive and its motors
+    // Mecanum drive motor hardware references
     private DcMotorEx leftFrontDrive;
     private DcMotorEx leftBackDrive;
     private DcMotorEx rightFrontDrive;
     private DcMotorEx rightBackDrive;
 
-    // individual motor PIF controls
+    // Individual motor PIF controllers
     private MotorControl leftFrontControl;
     private MotorControl leftBackControl;
     private MotorControl rightFrontControl;
     private MotorControl rightBackControl;
 
-    // reference wheel speeds (reference for closed-loop control)
-    // note: occasionally updated by RobotDrive function and acted upon in periodic
+    // Reference wheel speeds for closed-loop control in m/s
     MecanumDriveWheelSpeeds ReferenceWheelSpeeds;
 
     /**
-     * Place code here to initialize subsystem
+     * Initializes the drive train subsystem, sets up mecanum kinematics,
+     * configures motor directions and brake behaviors, and instantiates motor controllers.
+     *
+     * @author gbuckholtz
      */
     public DriveTrain() {
-
-        // Initialize the hardware variables. Note that the strings used here must correspond
-
-        // setup the Kinematics
+        // Setup Mecanum kinematics with wheel offset locations relative to robot center
         driveKinematics = new MecanumDriveKinematics(
                 // Front Left
-                new Translation2d(TRACK_LENGTH * 0.208, TRACK_WIDTH * 0.5), // length was * 0.5 but due to shorter base had to change for this bot - change back in the future.
+                new Translation2d(TRACK_LENGTH * 0.208, TRACK_WIDTH * 0.5),
                 // Front Right
-                new Translation2d(TRACK_LENGTH * 0.208, TRACK_WIDTH * -0.5), // length was * 0.5 but due to shorter base had to change for this bot - change back in the future.
+                new Translation2d(TRACK_LENGTH * 0.208, TRACK_WIDTH * -0.5),
                 // Back Left
-                new Translation2d(TRACK_LENGTH * -0.792, TRACK_WIDTH * 0.5), // length was * -0.5 but due to shorter base had to change for this bot - change back in the future.
+                new Translation2d(TRACK_LENGTH * -0.792, TRACK_WIDTH * 0.5),
                 // Back Right
-                new Translation2d(TRACK_LENGTH * -0.792, TRACK_WIDTH * -0.5)); // length was * -0.5 but due to shorter base had to change for this bot - change back in the future.
+                new Translation2d(TRACK_LENGTH * -0.792, TRACK_WIDTH * -0.5));
 
-        // to the names assigned during the robot configuration step on the DS or RC devices.
+        // Retrieve drive motors from the active OpMode's hardware map
         leftFrontDrive = RobotContainer.ActiveOpMode.hardwareMap.get(DcMotorEx.class, "leftFrontDrive");
         leftBackDrive = RobotContainer.ActiveOpMode.hardwareMap.get(DcMotorEx.class, "leftBackDrive");
         rightFrontDrive = RobotContainer.ActiveOpMode.hardwareMap.get(DcMotorEx.class, "rightFrontDrive");
         rightBackDrive = RobotContainer.ActiveOpMode.hardwareMap.get(DcMotorEx.class, "rightBackDrive");
 
-        // With the shift to DcMotorEx, Inverted function shifted to setDirection.
+        // Set motor directions (right side reversed for forward driving)
         leftFrontDrive.setDirection(DcMotorSimple.Direction.FORWARD);
         leftBackDrive.setDirection(DcMotorSimple.Direction.FORWARD);
         rightFrontDrive.setDirection(DcMotorSimple.Direction.REVERSE);
         rightBackDrive.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        // set motor to closed-loop speed control mode
+        // Run without internal encoder control (closed-loop handled in software periodic)
         leftFrontDrive.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         leftBackDrive.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         rightFrontDrive.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         rightBackDrive.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
-        // Set initial speeds to zero
+        // Initialize motor powers to zero
         leftFrontDrive.setPower(0.0);
         leftBackDrive.setPower(0.0);
         rightFrontDrive.setPower(0.0);
         rightBackDrive.setPower(0.0);
 
-        // set motor braking mode
+        // Configure active braking on zero power
         leftFrontDrive.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         leftBackDrive.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         rightFrontDrive.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         rightBackDrive.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
-        // create motor PIF controls
+        // Create PIF controllers for each drive motor
         leftFrontControl = new MotorControl();
         leftBackControl = new MotorControl();
         rightFrontControl = new MotorControl();
         rightBackControl = new MotorControl();
 
-        // default reference wheel speeds (in m/s)
-        ReferenceWheelSpeeds = new MecanumDriveWheelSpeeds(0.0,
-                                                            0.0,
-                                                            0.0,
-                                                            0.0);
+        // Default reference wheel speeds to zero
+        ReferenceWheelSpeeds = new MecanumDriveWheelSpeeds(0.0, 0.0, 0.0, 0.0);
     }
 
     /**
-     * Method called periodically by the scheduler
-     * Place any code here you wish to have run periodically
+     * Method called periodically by the command scheduler to compute and apply closed-loop PIF speed control to each drive motor.
+     *
+     * @author gbuckholtz
      */
     @Override
     public void periodic() {
-
-        // execute PID control for each motor
-
-        // current motor speeds in rpm
-        double TickstoRPM = 60.0/TICKS_PER_ROTATION;
+        // Convert motor encoder velocity ticks/s to RPM
+        double TickstoRPM = 60.0 / TICKS_PER_ROTATION;
         double CurrentLeftFrontRPM = TickstoRPM * leftFrontDrive.getVelocity();
         double CurrentRightFrontRPM = TickstoRPM * rightFrontDrive.getVelocity();
         double CurrentLeftBackRPM = TickstoRPM * leftBackDrive.getVelocity();
         double CurrentRightBackRPM = TickstoRPM * rightBackDrive.getVelocity();
 
-        // get reference speeds in rpm (convert m/s to rpm)
+        // Convert reference linear wheel speeds (m/s) to motor RPM
         double MPStoRPM = GEAR_RATIO * 60.0 / (WHEEL_DIA * Math.PI);
         double RefLeftFrontRPM = MPStoRPM * ReferenceWheelSpeeds.frontLeftMetersPerSecond;
         double RefRightFrontRPM = MPStoRPM * ReferenceWheelSpeeds.frontRightMetersPerSecond;
         double RefLeftBackRPM = MPStoRPM * ReferenceWheelSpeeds.rearLeftMetersPerSecond;
         double RefRightBackRPM = MPStoRPM * ReferenceWheelSpeeds.rearRightMetersPerSecond;
 
-        // calculate PIDs and set powers of each motor
-        leftFrontDrive.setPower(leftFrontControl.calculate(RefLeftFrontRPM,CurrentLeftFrontRPM));
-        rightFrontDrive.setPower(rightFrontControl.calculate(RefRightFrontRPM,CurrentRightFrontRPM));
-        leftBackDrive.setPower(leftBackControl.calculate(RefLeftBackRPM,CurrentLeftBackRPM));
+        // Compute PIF outputs and apply powers to each drive motor
+        leftFrontDrive.setPower(leftFrontControl.calculate(RefLeftFrontRPM, CurrentLeftFrontRPM));
+        rightFrontDrive.setPower(rightFrontControl.calculate(RefRightFrontRPM, CurrentRightFrontRPM));
+        leftBackDrive.setPower(leftBackControl.calculate(RefLeftBackRPM, CurrentLeftBackRPM));
         rightBackDrive.setPower(rightBackControl.calculate(RefRightBackRPM, CurrentRightBackRPM));
-
-        //PanelsTelemetry.INSTANCE.getTelemetry().addData("Left Front Drive Velocity(rpm)", CurrentLeftFrontRPM);
-        //PanelsTelemetry.INSTANCE.getTelemetry().addData("Left Front Referance Speeds(rpm)", RefLeftFrontRPM);
-        //PanelsTelemetry.INSTANCE.getTelemetry().addData("Left Back Drive Velocity(rpm)", CurrentLeftBackRPM);
-        //PanelsTelemetry.INSTANCE.getTelemetry().addData("Left Back Referance Speeds(rpm)", RefLeftBackRPM);
     }
 
-
-
     /**
-     * drive robot in field coordinates
+     * Drives the robot in field-oriented coordinates.
      *
-     * @param Vx - forward/backward velocity, m/s
-     * @param Vy - left/right velocity, range m/s
-     * @param Omega - rotation velocity, range rad/s
+     * @author gbuckholtz
+     *
+     * @param Vx forward/backward velocity in meters per second
+     * @param Vy left/right velocity in meters per second
+     * @param Omega rotational velocity in radians per second
      */
     public void FieldDrive(double Vx, double Vy, double Omega) {
-
-        // get angle of vector rotation angle
-        // i.e. neg of gyro angle - in rad
+        // Read gyro heading angle in radians
         double rotAngRad = Math.toRadians(RobotContainer.gyro.getYawAngle());
 
-        // rotate speed vector by negative of gyro angle
+        // Rotate field-centric vector by negative gyro angle to transform to robot coordinates
         double x = Vx * Math.cos(-rotAngRad) - Vy * Math.sin(-rotAngRad);
         double y = Vx * Math.sin(-rotAngRad) + Vy * Math.cos(-rotAngRad);
 
-        // x,y now in robot coordinates - call robot drive
+        // Drive with robot-centric velocities
         RobotDrive(x, y, Omega);
     }
 
-
     /**
-     * drive robot in robot coordinates
+     * Drives the robot in robot-oriented coordinates.
      *
-     * @param Vx - forward/backward velocity, m/s
-     * @param Vy - left/right velocity, m/s
-     * @param Omega - rotation velocity, rad/s
+     * @author gbuckholtz
+     *
+     * @param Vx forward/backward velocity in meters per second
+     * @param Vy left/right velocity in meters per second
+     * @param Omega rotational velocity in radians per second
      */
     public void RobotDrive(double Vx, double Vy, double Omega) {
-        // create a chassis speed object and populate with x, y, and omega
+        // Create ChassisSpeeds object from velocity commands
         ChassisSpeeds driveChassisSpeeds = new ChassisSpeeds(Vx, Vy, Omega);
 
-        // determine desired wheel speeds from the chassis speeds
-        // rotate around center of robot (i.e. coordinate 0,0)
+        // Calculate individual wheel speeds using inverse kinematics around robot center
         ReferenceWheelSpeeds = driveKinematics.toWheelSpeeds(driveChassisSpeeds, new Translation2d(0, 0));
 
-        // normalize wheel speeds so no wheel exceeds maximum attainable (in m/s)
-        //RefWheelSpeeds.normalize(MAX_SPEED);
+        // Normalize wheel speeds if any wheel exceeds MAX_SPEED
         double max = Math.max(Math.abs(ReferenceWheelSpeeds.frontLeftMetersPerSecond), Math.abs(ReferenceWheelSpeeds.frontRightMetersPerSecond));
         max = Math.max(max, Math.abs(ReferenceWheelSpeeds.rearRightMetersPerSecond));
         max = Math.max(max, Math.abs(ReferenceWheelSpeeds.rearLeftMetersPerSecond));
         if (max > MAX_SPEED) {
-            double factor = MAX_SPEED/max;
+            double factor = MAX_SPEED / max;
             ReferenceWheelSpeeds.frontLeftMetersPerSecond *= factor;
             ReferenceWheelSpeeds.frontRightMetersPerSecond *= factor;
             ReferenceWheelSpeeds.rearRightMetersPerSecond *= factor;
             ReferenceWheelSpeeds.rearLeftMetersPerSecond *= factor;
         }
 
-        // call periodic for immediate effect to motor drive
-        // (i.e. potentially saves a time cycle delay before implementing)
+        // Apply immediately to motors
         periodic();
     }
 
-
     /**
-     * gets the current speeds of mecanum drive wheels
+     * Retrieves the measured speeds of all four mecanum wheels in m/s.
      *
-     * @return current speeds of mecanum drive wheels in m/s
+     * @author gbuckholtz
+     *
+     * @return MecanumDriveWheelSpeeds containing each wheel's speed in meters per second
      */
     public MecanumDriveWheelSpeeds GetWheelSpeeds() {
-        // motor speeds are in encoder ticks/s - convert to m/s
+        // Convert motor encoder ticks/s to wheel travel m/s
         MecanumDriveWheelSpeeds speeds = new MecanumDriveWheelSpeeds();
         speeds.rearLeftMetersPerSecond = TICKSPS_TO_MPS * leftBackDrive.getVelocity();
         speeds.frontLeftMetersPerSecond = TICKSPS_TO_MPS * leftFrontDrive.getVelocity();
@@ -219,118 +210,84 @@ public class DriveTrain extends SubsystemBase {
     }
 
     /**
-     * gets the mecanum drive kinematics
+     * Retrieves the defined mecanum drive kinematics object.
      *
-     * @return the defined mecanum drive kinematics
-     * */
+     * @author gbuckholtz
+     *
+     * @return MecanumDriveKinematics representing the physical drivetrain geometry
+     */
     public MecanumDriveKinematics GetKinematics() {
         return driveKinematics;
     }
 
-    //needs JavaDoc comments for each method
     /**
-     * Special motor control class - specifically tailored for drive motor control
-     * implemented as subclass to facilitate application to all four drive motors
-     * Motor controller class
+     * Dedicated motor controller class implementing PIF (Proportional-Integral-Feedforward)
+     * velocity control with anti-windup for a single drive motor.
+     *
+     * @author gbuckholtz
      */
     private class MotorControl {
-        // motor max no-load speed = 6000rpm
-        // motor full power control = 1
-        // open loop control/rpm = 1.0/6000.0 = 0.00016667
+        private double Pgain = 1.25 * 0.00016667;
+        private double Igain = 5.5 * 0.00016667;
+        private double Fgain = 1.3 * 0.00016667;
 
-        // Dec 31/2024 KN: Testing suggests that P=0.8 and F=1.0 appears to
-        // be optimal for motor control under no-load testing
-
-        // Previous full-robot testing suggests that P=1.5 and F=1.3 is optimal
-        // This can be due to effects of robot mass and wheel inertia and rolling resistance
-        // requiring greater motor control efforts to achieve same speeds.
-        // note: battery voltage can somewhat impact the optimal value selected for F-gain
-        // I=6.0 Feb 5/2026 KN
-
-        private double Pgain = 1.25 * 0.00016667; // 0.8 is optimal for no-load operation
-        private double Igain = 5.5 * 0.00016667; // note at >250rpm error, igain drops to 0.15*6 = ~0.90
-        private double Fgain = 1.3 * 0.00016667; // 0.9 to 1.0 is optimal for no-load operation depending on battery voltage
-
-
-        // Integrated Error
+        // Timing and error accumulator
         private ElapsedTime intervalTime;
         private double IntegratedError;
 
-
+        /**
+         * Initializes the motor controller and resets timer and integrated error.
+         *
+         * @author gbuckholtz
+         */
         private MotorControl() {
-            // create interval timer
             intervalTime = new ElapsedTime();
-
-            // reset the motor controller
             reset();
         }
 
-        // resets the motor controller
+        /**
+         * Resets the controller timer and zeroes the accumulated integrated error.
+         *
+         * @author gbuckholtz
+         */
         private void reset() {
-            // reset interval timer
             intervalTime.reset();
-
-            // reset integrated error
             IntegratedError = 0.0;
         }
 
-
-        // run the motor control, return desired control action
+        /**
+         * Computes the motor power control output given target and actual RPM.
+         *
+         * @author gbuckholtz
+         *
+         * @param ReferenceSpeed target motor speed in RPM
+         * @param CurrentSpeed actual measured motor speed in RPM
+         * @return commanded motor power (-1.0 to 1.0)
+         */
         private double calculate(double ReferenceSpeed, double CurrentSpeed) {
-
-            // time since last calculate was executed
-            // limit to 70ms in case, for whatever reason it has been long time since last
+            // Measure time delta since last execution, clamped at 70ms
             double dt = intervalTime.seconds();
-            if (dt>0.07)
-                dt=0.07;
-
-            // reset timer for next time
+            if (dt > 0.07)
+                dt = 0.07;
             intervalTime.reset();
 
-            // current error in speed
+            // Compute speed error in RPM
             double error = ReferenceSpeed - CurrentSpeed;
 
-            /////////
-            // I controller with non-linear gain
-            double ierror = error;
-            //if (ierror > 250.0) ierror = 250.0;
-            //if (ierror < -250.0) ierror = -250.0;
-
-            // if error is large, use less integration
-            // f and p-gain should be doing must of control effort in this situation and no need
-            // integrate large errors.
-            // if close(within 250rpm) then use full i-gain
+            // Non-linear integration: reduce integral action when error is large (> 250 RPM)
             if (Math.abs(error) < 250.0)
-                IntegratedError += Igain * ierror * dt;
-            //else if ((error <-250.0 && IntegratedError > 0.0) ||
-            //        (error >250.0 && IntegratedError < 0.0))
-            //    IntegratedError += Igain * ierror * dt;
+                IntegratedError += Igain * error * dt;
             else
-                IntegratedError += Igain * 0.15 * ierror * dt;
+                IntegratedError += Igain * 0.15 * error * dt;
 
-
-            // anti-windup logic
-            // case where we have significantly over/under-shot the reference speed due to built-up integrated error
-            // 400rpm represents about 7-8% over/under-shoot of reference
+            // Anti-windup clamping on large overshoots
             if (error > 400.0 && IntegratedError < 0.0)
                 IntegratedError = 0.0;
             if (error < -400.0 && IntegratedError > 0.0)
                 IntegratedError = 0.0;
 
-            /*
-             * Dec 31/2024 KN: Removed. From testing this code found to add little to no improvement
-             * of performance.
-             * If integrated error is over-compensating, then help reduce over time
-             * if (error < 0.0 && IntegratedError > 0.0)
-             *     IntegratedError *= 0.98;
-             * if (error > 0.0 && IntegratedError < 0.0)
-             *     IntegratedError *= 0.98;
-             * end I controller special logic
-             */
-
-            // implement PIF controller and return the desired control action
+            // Compute and return PIF control output
             return (Fgain * ReferenceSpeed) + (Pgain * error) + (IntegratedError);
         }
     }
-
 }
