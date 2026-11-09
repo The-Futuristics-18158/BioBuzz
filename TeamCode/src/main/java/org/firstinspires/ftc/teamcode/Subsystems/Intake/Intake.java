@@ -1,9 +1,11 @@
-package org.firstinspires.ftc.teamcode.Subsystems;
+package org.firstinspires.ftc.teamcode.Subsystems.Intake;
 
 import com.arcrobotics.ftclib.command.SubsystemBase;
+import com.arcrobotics.ftclib.hardware.ServoEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
@@ -17,6 +19,12 @@ public class Intake extends SubsystemBase {
 
     // Intake motor hardware reference
     private final DcMotorEx intakeMotor;
+
+    private final Servo leftServo;
+    private final Servo rightServo;
+
+    private final double SERVO_ON = 1;
+    private final double SERVO_OFF = 0.5;
 
     // Gear reduction and encoder ticks constants
     private final double TICKS_PER_ROTATION = 28.0;
@@ -65,6 +73,26 @@ public class Intake extends SubsystemBase {
         // Initialize agitation mode
         AgitatorCount = 0;
         AgitateMode = false;
+
+        //Creates the servos for extracting from the flower
+        leftServo = RobotContainer.ActiveOpMode.hardwareMap.get(Servo.class, "leftFlowerExtractor");
+        rightServo = RobotContainer.ActiveOpMode.hardwareMap.get(Servo.class, "rightFlowerExtractor");
+        leftServo.setDirection(Servo.Direction.REVERSE);
+    }
+
+    public void servoOn() {
+        //Turns servos on
+        leftServo.setPosition(SERVO_ON);
+
+        rightServo.setPosition(SERVO_ON);
+    }
+
+    public void servoOff() {
+        //Turns servos off
+
+        leftServo.setPosition(SERVO_OFF);
+
+        rightServo.setPosition(SERVO_OFF);
     }
 
     /**
@@ -154,7 +182,8 @@ public class Intake extends SubsystemBase {
      */
     public void intakeRun(boolean Agitate) {
         AgitateMode = Agitate;
-        TargetSpeed = 90.0;
+        TargetSpeed = 50.0;
+        servoOn();
     }
 
     /**
@@ -175,7 +204,7 @@ public class Intake extends SubsystemBase {
      */
     public void intakeRunReducedSpeed(boolean Agitate) {
         AgitateMode = Agitate;
-        TargetSpeed = 75.0;
+        TargetSpeed = 30.0;
     }
 
     /**
@@ -208,6 +237,7 @@ public class Intake extends SubsystemBase {
         ResetController();
         AgitateMode = false;
         TargetSpeed = 0.0;
+        servoOff();
     }
 
     /**
