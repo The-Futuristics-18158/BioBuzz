@@ -4,31 +4,45 @@ import com.arcrobotics.ftclib.command.CommandBase;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Commands.Intake.EndWhenFull.EndAfterTimeElapsed;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 import org.firstinspires.ftc.teamcode.Utility.Utils;
-import org.firstinspires.ftc.vision.opencv.ColorBlobLocatorProcessor;
 
-import java.util.List;
-
+/**
+ * Autonomous hunt command that maintains an alliance-specific orientation (90 degrees for red, -90 for blue)
+ * while running the intake to collect field artifacts within a configurable time window.
+ *
+ * @author gbuckholtz
+ */
 public class HuntModeAuto extends CommandBase {
     private boolean haveArtifact;
     private double blobX;
-    PIDController omegaControl;
-    PIDController xControl;
-    int finishedCounter;
+    private PIDController omegaControl;
+    private PIDController xControl;
+    private int finishedCounter;
     private ElapsedTime timer;
     private double seconds;
     private double targetAngle;
 
-    // constructor
-    public HuntModeAuto(){
+    /**
+     * Constructs a HuntModeAuto command with a default 5.0-second timeout.
+     *
+     * @author gbuckholtz
+     */
+    public HuntModeAuto() {
         this(5.0);
     }
+
+    /**
+     * Constructs a HuntModeAuto command with a custom duration in seconds.
+     *
+     * @author gbuckholtz
+     *
+     * @param time maximum duration for the hunt command in seconds
+     */
     public HuntModeAuto(double time) {
         haveArtifact = false;
 
-        // add subsystem requirements (if any) - for example:
+        // Declare drivetrain and intake subsystem requirements
         addRequirements(RobotContainer.drivesystem);
         addRequirements(RobotContainer.intake);
 
@@ -38,106 +52,73 @@ public class HuntModeAuto extends CommandBase {
         seconds = time;
     }
 
-    // This method is called once when command is started
+    /**
+     * Resets controllers, timer, and configures target heading based on alliance color.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void initialize() {
         omegaControl.reset();
         xControl.reset();
-        //finished = false;
-        finishedCounter=0;
+        finishedCounter = 0;
         timer.reset();
-        if(RobotContainer.isRedAlliance()){
+
+        // 90 degrees for red alliance, -90 degrees for blue alliance
+        if (RobotContainer.isRedAlliance()) {
             targetAngle = 90.0;
-        }else{
+        } else {
             targetAngle = -90.0;
         }
     }
 
-    // This method is called periodically while command is active
+    /**
+     * Periodically runs intake, calculates heading correction via PID, and checks timeout.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void execute() {
-        // gets list of blobs from the camera
         double x_speed;
         double y_speed;
         double omega_speed;
 
-        if (timer.seconds() >= seconds){ //May need to adjust timeout
-
+        // Check if timeout reached
+        if (timer.seconds() >= seconds) {
             RobotContainer.intake.intakeStop();
             finishedCounter++;
-            //finished = true;
-
-        }else {
-            finishedCounter=0;
+        } else {
+            finishedCounter = 0;
             RobotContainer.intake.intakeRun();
         }
 
-        double angleError = Utils.AngleDifference(RobotContainer.gyro.getYawAngle(),targetAngle);
+        // Heading correction PID
+        double angleError = Utils.AngleDifference(RobotContainer.gyro.getYawAngle(), targetAngle);
         omega_speed = -omegaControl.calculate(angleError);
-
-        List<ColorBlobLocatorProcessor.Blob> blobs;
-        // change this later if for get green blob detections and or get purple blob detections (if we want to look for one specific color)
-        //blobs = RobotContainer.rampCamera.GetAllBlobDetections();
-
-        // If the robot sees an artifact in the camera
-//        if (blobs != null && !(blobs.isEmpty())) {
-//            haveArtifact = true;
-//            blobX = blobs.get(0).getCircle().getCenter().x - 160.0;
-//
-//            // set forward speed to value depending on how far artifact from center of camera
-//            // first number is forward
-//            // second number is how quickly the speed goes down when artifact is off center
-//            y_speed = 0.9 - 0.8*Math.min(Math.abs(blobX/160.0),1.0);
-//
-//            if (y_speed < 0.0){ y_speed = 0.0;}
-//
-//            if(!RobotContainer.isRedAlliance()){
-//               y_speed = y_speed* -1.0;
-//            }
-//
-//
-//            if(RobotContainer.isRedAlliance()){
-//                x_speed = -xControl.calculate(blobX);
-//            }else{
-//                x_speed = xControl.calculate(blobX);
-//            }
-//
-//        // Don't see anything therefor go ahead, no strafe
-//        } else {
-//            haveArtifact = false;
-//            blobX = 0;
-//            //omega_speed = 0.0;
-//            y_speed = 0.9;
-//            x_speed = 0.0;
-//            if(!RobotContainer.isRedAlliance()){
-//               y_speed = y_speed* -1.0;
-//            }
-//        }
-
-//       // if busy intaking robot, stop and wait for it to finish before proceeding
-//        if (RobotContainer.distance.isRampArtifactPresent()) {
-//            y_speed = 0.0;
-//            x_speed = 0.0;
-//        }
-
-//        RobotContainer.drivesystem.FieldDrive(x_speed, y_speed, omega_speed);
-
     }
-    // This method to return true only when command is to finish. Otherwise return false
+
+    /**
+     * Checks if the hunt mode command has concluded.
+     *
+     * @author gbuckholtz
+     *
+     * @return true when finished counter reaches threshold
+     */
     @Override
-    public boolean isFinished(){
-
-        return (finishedCounter>=2);
-
+    public boolean isFinished() {
+        return (finishedCounter >= 2);
     }
 
-    // This method is called once when command is finished.
+    /**
+     * Halts drivetrain and stops intake when the command finishes or is interrupted.
+     *
+     * @author gbuckholtz
+     *
+     * @param interrupted true if interrupted by the scheduler
+     */
     @Override
     public void end(boolean interrupted) {
-
-        RobotContainer.drivesystem.RobotDrive(0,0,0);
+        RobotContainer.drivesystem.RobotDrive(0, 0, 0);
         RobotContainer.intake.intakeStop();
-
     }
-
 }

@@ -1,55 +1,71 @@
 package org.firstinspires.ftc.teamcode.Commands.Intake.EndWhenFull;
 
-
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.RobotContainer;
-
-
 /**
- * This command ends only when the robot contains two artifacts in it
+ * Command that finishes execution after a predefined duration has elapsed
+ * to provide a fixed-time intake window.
  *
  * @author knutt5
  */
 public class EndAfterTimeElapsed extends CommandBase {
     private ElapsedTime timer;
-    boolean finished;
-    // constructor
-    public EndAfterTimeElapsed() {
+    private boolean finished;
 
-        // Note: this command does not require any subsystems
-        //addRequirements();
-        ElapsedTime timer = new ElapsedTime();
+    /**
+     * Constructs an EndAfterTimeElapsed command and initializes the elapsed timer.
+     *
+     * @author knutt5
+     */
+    public EndAfterTimeElapsed() {
+        timer = new ElapsedTime();
         timer.reset();
     }
 
-    // This method is called once when command is started
+    /**
+     * Resets the timer and finished state when the command is scheduled.
+     *
+     * @author knutt5
+     */
     @Override
     public void initialize() {
         timer.reset();
+        finished = false;
     }
 
-    // This method is called periodically while command is active
+    /**
+     * Periodically monitors whether the elapsed intake time exceeds the timeout threshold (2.5 seconds).
+     *
+     * @author knutt5
+     */
     @Override
     public void execute() {
-        if (timer.seconds()>2.5){ //May need to adjust timeout
+        if (timer.seconds() > 2.5) {
             finished = true;
-            //RobotContainer.intake.intakeStop();
         }
     }
 
-    // This method to return true only when command is to finish. Otherwise return false
+    /**
+     * Checks if the time window has finished.
+     *
+     * @author knutt5
+     *
+     * @return true if elapsed time exceeds 2.5s, false otherwise
+     */
     @Override
     public boolean isFinished() {
-
         return finished;
     }
 
-    // This method is called once when command is finished.
+    /**
+     * Called when the command ends or is interrupted.
+     *
+     * @author knutt5
+     *
+     * @param interrupted true if interrupted by the scheduler
+     */
     @Override
     public void end(boolean interrupted) {
-
     }
-
 }

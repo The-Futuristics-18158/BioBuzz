@@ -3,44 +3,63 @@ package org.firstinspires.ftc.teamcode.Commands.Shoot;
 import com.arcrobotics.ftclib.command.CommandBase;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
-
-// command template
+/**
+ * Command to maintain default shooter idle speed when not actively targeting or shooting.
+ *
+ * @author gbuckholtz
+ */
 public class DefaultShooterSpeed extends CommandBase {
 
-    // constructor
+    /**
+     * Constructs a DefaultShooterSpeed command.
+     *
+     * @author gbuckholtz
+     */
     public DefaultShooterSpeed() {
-
-        // add subsystem requirements (if any) - for example:
-        //addRequirements(RobotContainer.shooter);
+        // Add subsystem requirements if needed
     }
 
-    // This method is called once when command is started
+    /**
+     * Called once when command begins.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void initialize() {
-
+        // Initialization if needed
     }
 
-    // This method is called periodically while command is active
+    /**
+     * Periodically updates the default shooter speed.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void execute() {
-        // only turn on shooter once we have at least one artifact
-        //RobotContainer.shooter.SetFlywheelSpeed(Math.max(0.0,RobotContainer.targeting.IdleSpeed()));
-
-
+        // Set idle flywheel speed when active
     }
 
-    // This method to return true only when command is to finish. Otherwise return false
+    /**
+     * Default command runs continuously until interrupted.
+     *
+     * @author gbuckholtz
+     *
+     * @return always false
+     */
     @Override
     public boolean isFinished() {
-
         return false;
-
     }
 
-    // This method is called once when command is finished.
+    /**
+     * Called when the command finishes or is interrupted.
+     *
+     * @author gbuckholtz
+     *
+     * @param interrupted true if interrupted by another command
+     */
     @Override
     public void end(boolean interrupted) {
-
+        // Cleanup if required
     }
-
 }

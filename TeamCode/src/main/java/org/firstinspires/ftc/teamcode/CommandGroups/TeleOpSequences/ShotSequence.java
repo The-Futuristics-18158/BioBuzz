@@ -6,144 +6,80 @@ import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import org.firstinspires.ftc.teamcode.Commands.Utility.Pause;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
-
-// Example Sequential Command Group
-// There are also:
-// ParallelCommandGroup
-// ParallelRaceGroup
-// ParallelDeadlineGroup
-
+/**
+ * Sequential command group for executing a shot into the alliance goal.
+ * Lifts the ramp to index the artifact, delays for positioning, feeds with the intake roller,
+ * and resets the ramp and intake upon completion.
+ *
+ * @author gbuckholtz
+ */
 public class ShotSequence extends SequentialCommandGroup {
 
-    // constructor
+    /**
+     * Constructs a standard ShotSequence with default timing.
+     *
+     * @author gbuckholtz
+     */
     public ShotSequence() {
-
+        // Require intake and ramp lift subsystems
         addRequirements(RobotContainer.intake);
         addRequirements(RobotContainer.ramplift);
 
-        addCommands (
-                new InstantCommand(()-> RobotContainer.ramplift.Raise()),
+        addCommands(
+                // Raise ramp to position artifact
+                new InstantCommand(() -> RobotContainer.ramplift.Raise()),
 
+                // Wait for ramp to lift
                 new Pause(0.25),
 
-                new InstantCommand(()-> RobotContainer.intake.intakeRunReducedSpeed(true)),
+                // Feed artifact into flywheel
+                new InstantCommand(() -> RobotContainer.intake.intakeRunReducedSpeed(true)),
 
+                // Wait for shot completion
                 new Pause(1.90)
         );
-
     }
-    public ShotSequence(double shotDelay) {
 
+    /**
+     * Constructs a ShotSequence with an initial delay before firing.
+     *
+     * @author gbuckholtz
+     *
+     * @param shotDelay delay in seconds before commencing the shot sequence
+     */
+    public ShotSequence(double shotDelay) {
+        // Require intake and ramp lift subsystems
         addRequirements(RobotContainer.intake);
         addRequirements(RobotContainer.ramplift);
 
-        addCommands (
+        addCommands(
+                // Initial delay
                 new Pause(shotDelay),
 
-                new InstantCommand(()-> RobotContainer.ramplift.Raise()),
+                // Raise ramp
+                new InstantCommand(() -> RobotContainer.ramplift.Raise()),
 
+                // Wait for ramp to lift
                 new Pause(0.25),
 
-                new InstantCommand(()-> RobotContainer.intake.intakeRunReducedSpeed(true)),
+                // Feed artifact into flywheel
+                new InstantCommand(() -> RobotContainer.intake.intakeRunReducedSpeed(true)),
 
+                // Wait for shot completion
                 new Pause(1.90)
         );
-
     }
+
+    /**
+     * Lowers the ramp and stops the intake motor upon completion or interruption.
+     *
+     * @author gbuckholtz
+     *
+     * @param interrupted true if interrupted by the scheduler
+     */
     @Override
-    public void end(boolean interrupted){
+    public void end(boolean interrupted) {
         RobotContainer.ramplift.Lower();
         RobotContainer.intake.intakeStop();
     }
 }
-
-// Example #2: Using conditional command
-// conditionally run commands depending on condition
-/*      new FourWayConditionalCommand(
-            ()-> { return true; },
-            new SequentialCommandGroup(
-                commands to do this
-            ),
-            ()-> { return false; },
-            new SequentialCommandGroup(
-                commands to do that
-            ),
-            ()-> { return false; },
-            new SequentialCommandGroup(
-                commands to do those
-            ),
-            new SequentialCommandGroup(
-                commands to do something else
-            )
-
-        ) // end FourWayCondition
-*/
-
-
-// Example #1: Lily's 2023 FRC super cube auto
-/*          // enable arm, and lift to stow position
-            new InstantCommand(() -> RobotContainer.arm.SetEnableArm(true)),
-
-            // move arm back to drop off cube
-            new InstantCommand(() -> RobotContainer.arm.SetArmPosition(RobotContainer.arm.HIGH_DEG)),
-
-            // delay until arm gets back
-            new DelayCommand(1.0),
-
-            // place cube
-            new InstantCommand(() -> RobotContainer.grabber.setClose()),
-
-            // delay for gripper to close
-            new DelayCommand(0.7),
-
-            // move arm to 'forward position' but inside robot bumper)
-            // move to 135deg
-            new InstantCommand(() -> RobotContainer.arm.SetArmPosition(135.0)),
-
-            // delay for arm to get to stow
-            new DelayCommand(1.5),
-
-            // ensure arm is stowed before it is allow to begin moving over charge station
-            new SafetyCheckStowPosition(),
-
-            // drive right
-            // new DrivetoRelativePose(new Pose2d(0,-2.0, new Rotation2d(0.0)), 1.0, 0.1, 5.0),
-
-            // drive straight
-            new DrivetoRelativePose(new Pose2d(5.0, 0, new Rotation2d(0.0)),1.8,0.1, 7.0),
-
-            // pick up cube from floor :)
-            new AutoFloorCubePickup(),
-
-            // delay
-            new DelayCommand(0.5),
-
-            // drive back
-            //new DrivetoRelativePose(new Pose2d(1.0,0, new Rotation2d(0.0)), 1.0, 0.1, 2.0),
-
-            // drive left to center
-            new DrivetoRelativePose(new Pose2d(-1.0,2.0, new Rotation2d(0.0)), 1.8, 0.1, 5.0),
-
-            // drive straight onto charge station
-            new DrivetoRelativePose(new Pose2d(-1.5, 0, new Rotation2d(0.0)),1.0,0.1, 30.0),
-
-            // balance
-            new AutoBalance()
-
-// Example #2: Matthew's 2024 shoot donut sequence.
-This sequence contains parallel and parallelrace subgroups within an overall series command
-
-      addCommands(
-      new ParallelRaceGroup(
-        new AimToSpeaker(),
-        new SpinupSpeaker()
-      ),
-      new ParallelCommandGroup(
-        new WaitForEffectorAngle(),
-        new WaitForShooterSpinup()
-      ),
-
-      new ShootSpeaker()
-    );
-
- */

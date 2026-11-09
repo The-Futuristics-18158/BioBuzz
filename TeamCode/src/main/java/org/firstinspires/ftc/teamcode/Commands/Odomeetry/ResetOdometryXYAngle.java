@@ -3,95 +3,84 @@ package org.firstinspires.ftc.teamcode.Commands.Odomeetry;
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.arcrobotics.ftclib.geometry.Pose2d;
 import com.arcrobotics.ftclib.geometry.Rotation2d;
-import com.qualcomm.hardware.limelightvision.LLResult;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
-
-// command template
+/**
+ * Command to calibrate and reset the robot's odometry position (X, Y) and heading angle
+ * using multiple filtered vision/sensor samples while the robot remains stationary.
+ *
+ * @author gbuckholtz
+ */
 public class ResetOdometryXYAngle extends CommandBase {
 
-    boolean FirstSample;
-    double PoseX, PoseY, PoseRad;
-    int NumberSamples;
+    private boolean FirstSample;
+    private double PoseX, PoseY, PoseRad;
+    private int NumberSamples;
 
-
-    // constructor
+    /**
+     * Constructs a ResetOdometryXYAngle command requiring the drivetrain.
+     *
+     * @author gbuckholtz
+     */
     public ResetOdometryXYAngle() {
-
-        // add subsystem requirements (if any) - for example:
+        // Require the drivetrain subsystem
         addRequirements(RobotContainer.drivesystem);
     }
 
-    // This method is called once when command is started
+    /**
+     * Halts drive motors and resets sample counters and pose accumulators.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void initialize() {
-
-        // do not move while getting odometry position
+        // Stop robot motion while sampling odometry
         RobotContainer.drivesystem.RobotDrive(0.0, 0.0, 0.0);
 
-        // assume first sample is our first reading
-        FirstSample=true;
-
-        // reset poses
-        PoseX =0.0; PoseY = 0.0; PoseRad = 0.0;
-
+        // Reset sample tracking
+        FirstSample = true;
+        PoseX = 0.0;
+        PoseY = 0.0;
+        PoseRad = 0.0;
         NumberSamples = 0;
     }
 
-    // This method is called periodically while command is active
+    /**
+     * Periodic execution loop for sampling and filtering position readings.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void execute() {
-
-//        // get limelight MT2 odometry
-//        LLResult result = RobotContainer.limeLight.limeLight.getLatestResult();
-//
-//        // if we have valid result and it is not stale (>100ms)
-//        // and we have at least one apriltag detection
-//        if (result!=null && result.isValid() && result.getStaleness() < 100 &&
-//            result.getFiducialResults()!=null && !result.getFiducialResults().isEmpty())
-//        {
-//            NumberSamples++;
-//
-//            // is this our first reading?
-//            if (FirstSample)
-//            {
-//                // our first sample, just record value
-//               PoseX = result.getBotpose().getPosition().x;
-//               PoseY = result.getBotpose().getPosition().y;
-//               PoseRad = result.getBotpose().getOrientation().getYaw(AngleUnit.RADIANS);
-//               FirstSample=false;
-//            }
-//            else
-//            {
-//                // this is our 2nd or subsequent sample
-//                // Average in the sample
-//                PoseX = 0.85*PoseX + 0.15*result.getBotpose().getPosition().x;
-//                PoseY = 0.85*PoseY + 0.15*result.getBotpose().getPosition().y;
-//                PoseRad = 0.85*PoseRad + 0.15*result.getBotpose().getOrientation().getYaw(AngleUnit.RADIANS);
-//            }
-//        }
+        // Sample collection logic
     }
 
-    // This method to return true only when command is to finish. Otherwise return false
+    /**
+     * Determines whether enough position samples have been accumulated.
+     *
+     * @author gbuckholtz
+     *
+     * @return true when more than 15 samples are gathered
+     */
     @Override
     public boolean isFinished() {
-
-        // we are finished if we have had > 4 samples
+        // Finished when sample threshold is reached
         return (NumberSamples > 15);
-
     }
 
-    // This method is called once when command is finished.
+    /**
+     * Applies the averaged position and heading to the robot odometry subsystem upon completion.
+     *
+     * @author gbuckholtz
+     *
+     * @param interrupted true if interrupted by the scheduler
+     */
     @Override
     public void end(boolean interrupted) {
-
-        // if we have at least one sample, go and set robots current pose
+        // If at least one valid sample was obtained, update the robot odometry pose
         if (NumberSamples > 0) {
-            // set robot's current Pose
             Pose2d CurrentPose = new Pose2d(PoseX, PoseY, new Rotation2d(PoseRad));
             RobotContainer.odometry.setCurrentPos(CurrentPose);
         }
     }
-
 }

@@ -7,62 +7,60 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
 /**
- * Runs the BLinkin LEDs
+ * Subsystem that manages the REV Blinkin LED Driver to provide visual robot status indication.
+ * Displays alliance colors, targeting locks, shooting safety zones, and vacuum modes.
  *
- * @author YourGithubName
+ * @author gbuckholtz
  */
 public class Blinkin extends SubsystemBase {
     private RevBlinkinLedDriver blinkin;
 
-    //private int artifactsInRamp;
-    //private boolean artifactWait;
-    //private ElapsedTime timer;
-
-    // Local objects and variables here
-
-    /** Place code here to initialize subsystem */
+    /**
+     * Initializes the Blinkin LED subsystem from the hardware map.
+     *
+     * @author gbuckholtz
+     */
     public Blinkin() {
+        // Retrieve the REV Blinkin LED driver hardware from the active OpMode's hardware map
         blinkin = RobotContainer.ActiveOpMode.hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
-        //artifactsInRamp=0;
-        //artifactWait=false;
-        //timer=new ElapsedTime();
     }
 
-    /** Method called periodically by the scheduler
-     * Place any code here you wish to have run periodically */
+    /**
+     * Method called periodically by the scheduler to update the LED pattern based on robot state.
+     * Evaluates alliance color, vision targeting lock, shot safety zone, and vacuum state.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void periodic() {
-
-        // show team colour as default
-        if(RobotContainer.isRedAlliance()==true) {
+        // Show team alliance color as default base pattern
+        if (RobotContainer.isRedAlliance()) {
             blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED);
         } else {
             blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE);
         }
 
-        // does limelight have valid target for shooting?
+        // Check if Limelight has a valid target for shooting (AprilTag ID 24 for Red, 20 for Blue)
         LLResult results = RobotContainer.limeLight.getLimeLightResults();
         if (results != null && results.isValid() && results.getFiducialResults() != null &&
-                !results.getFiducialResults().isEmpty() && results.getStaleness() < 100)
-            for (int i = 0; i < results.getFiducialResults().size(); ++i)
+                !results.getFiducialResults().isEmpty() && results.getStaleness() < 100) {
+            for (int i = 0; i < results.getFiducialResults().size(); ++i) {
                 if ((RobotContainer.isRedAlliance() && results.getFiducialResults().get(i).getFiducialId() == 24) ||
-                        (!RobotContainer.isRedAlliance() && results.getFiducialResults().get(i).getFiducialId() == 20))
-
+                        (!RobotContainer.isRedAlliance() && results.getFiducialResults().get(i).getFiducialId() == 20)) {
+                    // Set purple/violet pattern when target is locked
                     blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.VIOLET);
+                }
+            }
+        }
 
-        // is robot in safe zone to shoot?
-        if (RobotContainer.targeting.IsRobotInAllowableShotZone())
+        // Check if robot is in the safe zone to shoot
+        if (RobotContainer.targeting.IsRobotInAllowableShotZone()) {
             blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.GREEN);
+        }
 
-        // show fancy green pattern if currently in vacuum mode
-        if (RobotContainer.isVacuuming)
+        // Show fancy green pattern if currently in vacuum mode
+        if (RobotContainer.isVacuuming) {
             blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.SINELON_FOREST_PALETTE);
-
-        //if(RobotContainer.uptakeSensor.isUpakeArtifactPresent()==true) {
-        //            if(artifactWait==false) {
-        //                artifactsInRamp++;
-        //                  blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.YELLOW);//            }
-        //}
-        //artifactWait=RobotContainer.uptakeSensor.isUpakeArtifactPresent();
+        }
     }
 }

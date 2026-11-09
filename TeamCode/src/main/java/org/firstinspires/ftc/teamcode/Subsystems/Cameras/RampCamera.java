@@ -8,9 +8,7 @@ import androidx.annotation.NonNull;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.robotcore.util.SortOrder;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.CameraControl;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.robotcore.external.stream.CameraStreamServer;
@@ -31,8 +29,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-
-/** Ramp Camera Subsystem
+/**
+ * Ramp Camera Subsystem managing webcam video streaming, image orientation flipping,
+ * and OpenCV color blob detection for purple and green game artifacts.
+ *
  * @author kw126
  * @author Glenn
  * @author knutt5
@@ -43,159 +43,156 @@ public class RampCamera extends SubsystemBase {
     private volatile VisionPortal visionPortal;
 
     // Available vision processors to be used with camera
-    // create a processor for each colour of field object
-    // private volatile AprilTagProcessor aprilTagProcessor;
     private volatile ColorBlobLocatorProcessor purpleBlobProcessor;
     private volatile ColorBlobLocatorProcessor greenBlobProcessor;
 
-    // processor to fip image right-side-up
+    // Processor to flip image right-side-up
     private volatile ImageFlipProcessor flipProcessor;
 
-    // current selected vision mode
+    // Current selected vision mode
     private VisionProcessorMode currentMode = VisionProcessorMode.NONE;
 
-    /** Place code here to initialize subsystem */
+    /**
+     * Initializes the ramp camera subsystem, configures the color blob locator processors
+     * for purple and green artifacts, builds the VisionPortal pipeline, and enables artifact detection.
+     *
+     * @author kw126
+     *
+     * @param cameraName hardware map identifier for the USB webcam
+     */
     public RampCamera(String cameraName) {
-
-        // create processor to flip image right-side up
+        // Create processor to flip image right-side up
         flipProcessor = new ImageFlipProcessor();
 
-        // create purple blob processor
+        // Create purple blob processor
         purpleBlobProcessor = new ColorBlobLocatorProcessor.Builder()
-                .setTargetColorRange(ColorRange.ARTIFACT_PURPLE)   // Use a predefined color match
-                //.setTargetColorRange(new ColorRange(ColorSpace.YCrCb,
-                //                    new Scalar(32.0, 135.0, 135.0),
-                //                    new Scalar(255.0, 155.0, 169.0)))
+                .setTargetColorRange(ColorRange.ARTIFACT_PURPLE)
                 .setRoi(ImageRegion.asUnityCenterCoordinates(-1, 1, 1, -1))
                 .setContourMode(ColorBlobLocatorProcessor.ContourMode.EXTERNAL_ONLY)
-                //.setContourMode(ColorBlobLocatorProcessor.ContourMode.ALL_FLATTENED_HIERARCHY)
-                .setDrawContours(true)   // Show contours on the Stream Preview
-                .setBoxFitColor(0)       // Disable the drawing of rectangles
-                .setCircleFitColor(Color.rgb(255, 255, 0)) // Draw a circle
-                .setBlurSize(5)          // Smooth the transitions between different colors in image
-                .setDilateSize(15)       // Expand blobs to fill any divots on the edges
-                .setErodeSize(15)        // Shrink blobs back to original size
+                .setDrawContours(true)
+                .setBoxFitColor(0)
+                .setCircleFitColor(Color.rgb(255, 255, 0))
+                .setBlurSize(5)
+                .setDilateSize(15)
+                .setErodeSize(15)
                 .setMorphOperationType(ColorBlobLocatorProcessor.MorphOperationType.CLOSING)
                 .build();
 
-        // available filtering functions
+        // Add contour filtering for purple artifacts
         purpleBlobProcessor.addFilter(new ColorBlobLocatorProcessor.BlobFilter(
                 ColorBlobLocatorProcessor.BlobCriteria.BY_CONTOUR_AREA, 2000, 76800));
         purpleBlobProcessor.addFilter(new ColorBlobLocatorProcessor.BlobFilter(
                 ColorBlobLocatorProcessor.BlobCriteria.BY_CIRCULARITY, 0.6, 1));
-        //purpleBlobProcessor.addFilter(new ColorBlobLocatorProcessor.BlobFilter(
-        //        ColorBlobLocatorProcessor.BlobCriteria.BY_ASPECT_RATIO, 1.0, 2.0));
-        //purpleBlobProcessor.addFilter(new ColorBlobLocatorProcessor.BlobFilter(
-        //        ColorBlobLocatorProcessor.BlobCriteria.BY_DENSITY, 0.8, 1.0));
 
-        // tell blob processor how to sort its results
-        purpleBlobProcessor.setSort(new ColorBlobLocatorProcessor.BlobSort(ColorBlobLocatorProcessor.BlobCriteria.BY_CONTOUR_AREA, SortOrder.DESCENDING));
+        // Sort purple blobs by contour area descending
+        purpleBlobProcessor.setSort(new ColorBlobLocatorProcessor.BlobSort(
+                ColorBlobLocatorProcessor.BlobCriteria.BY_CONTOUR_AREA, SortOrder.DESCENDING));
 
-        // create green blob processor
+        // Create green blob processor
         greenBlobProcessor = new ColorBlobLocatorProcessor.Builder()
-                .setTargetColorRange(ColorRange.ARTIFACT_GREEN)   // Use a predefined color match
-                //.setTargetColorRange(new ColorRange(ColorSpace.YCrCb,
-                //                    new Scalar(32.0, 50.0, 118.0),
-                //                    new Scalar(255.0, 105.0, 145.0)))
-                .setRoi(ImageRegion.asUnityCenterCoordinates(-1, 1, 1, -1))// entire screen / screen size
+                .setTargetColorRange(ColorRange.ARTIFACT_GREEN)
+                .setRoi(ImageRegion.asUnityCenterCoordinates(-1, 1, 1, -1))
                 .setContourMode(ColorBlobLocatorProcessor.ContourMode.EXTERNAL_ONLY)
-                //.setContourMode(ColorBlobLocatorProcessor.ContourMode.ALL_FLATTENED_HIERARCHY)
-                .setDrawContours(true)   // Show contours on the Stream Preview
-                .setBoxFitColor(0)       // Disable the drawing of rectangles
-                .setCircleFitColor(Color.rgb(255, 255, 0)) // Draw a circle
-                .setBlurSize(5)          // Smooth the transitions between different colors in image
-                .setDilateSize(15)       // Expand blobs to fill any divots on the edges
-                .setErodeSize(15)        // Shrink blobs back to original size
+                .setDrawContours(true)
+                .setBoxFitColor(0)
+                .setCircleFitColor(Color.rgb(255, 255, 0))
+                .setBlurSize(5)
+                .setDilateSize(15)
+                .setErodeSize(15)
                 .setMorphOperationType(ColorBlobLocatorProcessor.MorphOperationType.CLOSING)
                 .build();
 
-        // available filtering functions
+        // Add contour filtering for green artifacts
         greenBlobProcessor.addFilter(new ColorBlobLocatorProcessor.BlobFilter(
                 ColorBlobLocatorProcessor.BlobCriteria.BY_CONTOUR_AREA, 2000, 76800));
         greenBlobProcessor.addFilter(new ColorBlobLocatorProcessor.BlobFilter(
                 ColorBlobLocatorProcessor.BlobCriteria.BY_CIRCULARITY, 0.6, 1));
-        //greenBlobProcessor.addFilter(new ColorBlobLocatorProcessor.BlobFilter(
-        //        ColorBlobLocatorProcessor.BlobCriteria.BY_ASPECT_RATIO, 1.0, 2.0));
-        //greenBlobProcessor.addFilter(new ColorBlobLocatorProcessor.BlobFilter(
-        //        ColorBlobLocatorProcessor.BlobCriteria.BY_DENSITY, 0.8, 1.0));
 
-        // tell blob processor how to sort its results
-        greenBlobProcessor.setSort(new ColorBlobLocatorProcessor.BlobSort(ColorBlobLocatorProcessor.BlobCriteria.BY_CONTOUR_AREA, SortOrder.DESCENDING));
+        // Sort green blobs by contour area descending
+        greenBlobProcessor.setSort(new ColorBlobLocatorProcessor.BlobSort(
+                ColorBlobLocatorProcessor.BlobCriteria.BY_CONTOUR_AREA, SortOrder.DESCENDING));
 
         // Build the camera vision portal
         visionPortal = new VisionPortal.Builder()
                 .setCamera(RobotContainer.ActiveOpMode.hardwareMap.get(WebcamName.class, cameraName))
                 .setCameraResolution(new Size(320, 240))
-                //.setCameraResolution(new Size(1280,720)) if have an HD camera
                 .addProcessors(flipProcessor)
                 .addProcessors(purpleBlobProcessor, greenBlobProcessor)
                 .enableLiveView(false)
                 .setStreamFormat(VisionPortal.StreamFormat.MJPEG)
                 .build();
 
-        // by default enable artifact detection processors
+        // By default enable artifact detection processors
         setVisionProcessingMode(VisionProcessorMode.ARTIFACT);
 
-        // show camera stream on panels dashboard
+        // Show camera stream on panels dashboard
         enableDashBoardView(true);
     }
 
-    /** Method called periodically by the scheduler
-     * Place any code here you wish to have run periodically */
+    /**
+     * Method called periodically by the command scheduler.
+     *
+     * @author kw126
+     */
     @Override
     public void periodic() {
+        // Periodic camera logic if required
     }
 
-    /**Use this function to set vision processing mode of the camera
-     * @param newMode the new mode from VisionProcessorMode Enum
+    /**
+     * Configures the active vision processing mode for the camera subsystem.
+     * Enables or disables color blob processors accordingly.
+     *
+     * @author kw126
+     *
+     * @param newMode desired vision processing mode from VisionProcessorMode enum
      */
     public void setVisionProcessingMode(@NonNull VisionProcessorMode newMode) {
-
         enableDashBoardView(false);
         RobotContainer.ActiveOpMode.sleep(100);
 
-        // enable/disable modes depending on vision processing mode selected
-        //visionPortal.stopStreaming();
+        // Enable or disable processors depending on the selected mode
         switch (newMode) {
             case NONE:
                 currentMode = VisionProcessorMode.NONE;
-                //SetAutoCameraExposure();
-                //setCameraExposure(60, 350);
                 visionPortal.setProcessorEnabled(purpleBlobProcessor, false);
                 visionPortal.setProcessorEnabled(greenBlobProcessor, false);
-                //visionPortal.setProcessorEnabled(aprilTagProcessor, false);
                 break;
             case ARTIFACT:
                 currentMode = VisionProcessorMode.ARTIFACT;
-                //SetAutoCameraExposure();
-                //setCameraExposure(60, 350);
                 visionPortal.setProcessorEnabled(purpleBlobProcessor, true);
                 visionPortal.setProcessorEnabled(greenBlobProcessor, true);
-                //visionPortal.setProcessorEnabled(aprilTagProcessor, false);
                 break;
             default:
-                // don't change anything
+                break;
         }
 
         RobotContainer.ActiveOpMode.sleep(100);
         enableDashBoardView(true);
     }
 
-    // use this function to set vision processing mode of the camera
-    /** Used to get the current vision processing mode
+    /**
+     * Retrieves the current vision processing mode of the camera.
+     *
+     * @author kw126
+     *
+     * @return active VisionProcessorMode
      */
-    public VisionProcessorMode getVisionProcessingMode()
-    { return currentMode; }
+    public VisionProcessorMode getVisionProcessingMode() {
+        return currentMode;
+    }
 
-    // ---------- Colour blob access functions ----------
-
-    /**Get all blob detections (if any) from camera
-     * @return returns list containing info on each blob
+    /**
+     * Retrieves all detected color blobs (purple and green) from the camera, sorted by area.
+     *
+     * @author kw126
+     *
+     * @return list containing detected color blobs
      */
     public List<ColorBlobLocatorProcessor.Blob> GetAllBlobDetections() {
         List<ColorBlobLocatorProcessor.Blob> blobs;
 
-        switch(currentMode){
+        switch (currentMode) {
             case ARTIFACT:
                 blobs = purpleBlobProcessor.getBlobs();
                 blobs.addAll(greenBlobProcessor.getBlobs());
@@ -204,31 +201,27 @@ public class RampCamera extends SubsystemBase {
                 blobs = new ArrayList<>();
         }
 
-        // available filtering functions
-        //ColorBlobLocatorProcessor.Util.filterByArea(25, 300000, blobs);
-        //ColorBlobLocatorProcessor.Util.filterByDensity(0.10, 1.0, blobs);
-        //ColorBlobLocatorProcessor.Util.filterByAspectRatio(0.1, 10.0, blobs);
-
-        // available sorting functions
+        // Sort blobs by contour area descending
         ColorBlobLocatorProcessor.Util.sortByCriteria(ColorBlobLocatorProcessor.BlobCriteria.BY_CONTOUR_AREA, SortOrder.DESCENDING, blobs);
-        //ColorBlobLocatorProcessor.Util.sortByCriteria(ColorBlobLocatorProcessor.BlobCriteria.BY_DENSITY, SortOrder.DESCENDING, blobs);
-        //ColorBlobLocatorProcessor.Util.sortByCriteria(ColorBlobLocatorProcessor.BlobCriteria.BY_ASPECT_RATIO, SortOrder.DESCENDING, blobs);
-        //ColorBlobLocatorProcessor.Util.sortByCriteria(ColorBlobLocatorProcessor.BlobCriteria.BY_CIRCULARITY, SortOrder.DESCENDING, blobs);
 
-        // use if we only want to return the top item (if any) and disregard rest
-        if (blobs!= null && !blobs.isEmpty()){
+        // Return only the primary detected blob if present
+        if (blobs != null && !blobs.isEmpty()) {
             blobs = Collections.singletonList(blobs.get(0));
         }
         return blobs;
     }
 
-    /**Gets all purple blobs
-     * @return returns list containing info on each purple blob
+    /**
+     * Retrieves all detected purple artifact blobs from the camera.
+     *
+     * @author kw126
+     *
+     * @return list containing detected purple blobs
      */
     public List<ColorBlobLocatorProcessor.Blob> GetPurpleBlobDetections() {
         List<ColorBlobLocatorProcessor.Blob> blobs;
 
-        switch(currentMode){
+        switch (currentMode) {
             case ARTIFACT:
                 blobs = purpleBlobProcessor.getBlobs();
                 break;
@@ -236,24 +229,28 @@ public class RampCamera extends SubsystemBase {
                 blobs = new ArrayList<>();
         }
 
-        // available sorting functions
+        // Sort by area descending
         ColorBlobLocatorProcessor.Util.sortByCriteria(ColorBlobLocatorProcessor.BlobCriteria.BY_CONTOUR_AREA, SortOrder.DESCENDING, blobs);
 
-        // use if we only want to return the top item (if any) and disregard rest
-        if (blobs!= null && !blobs.isEmpty()){
+        // Return top blob
+        if (blobs != null && !blobs.isEmpty()) {
             blobs = Collections.singletonList(blobs.get(0));
         }
 
         return blobs;
     }
 
-    /**Gets all green blobs
-     * @return returns list containing info on each green blob
+    /**
+     * Retrieves all detected green artifact blobs from the camera.
+     *
+     * @author kw126
+     *
+     * @return list containing detected green blobs
      */
     public List<ColorBlobLocatorProcessor.Blob> GetGreenBlobDetections() {
         List<ColorBlobLocatorProcessor.Blob> blobs;
 
-        switch(currentMode){
+        switch (currentMode) {
             case ARTIFACT:
                 blobs = greenBlobProcessor.getBlobs();
                 break;
@@ -261,45 +258,59 @@ public class RampCamera extends SubsystemBase {
                 blobs = new ArrayList<>();
         }
 
-        // available sorting functions
+        // Sort by area descending
         ColorBlobLocatorProcessor.Util.sortByCriteria(ColorBlobLocatorProcessor.BlobCriteria.BY_CONTOUR_AREA, SortOrder.DESCENDING, blobs);
 
-        // use if we only want to return the top item (if any) and disregard rest
-        if (blobs!= null && !blobs.isEmpty()){
+        // Return top blob
+        if (blobs != null && !blobs.isEmpty()) {
             blobs = Collections.singletonList(blobs.get(0));
         }
 
         return blobs;
     }
 
-
+    /**
+     * Calculates the center (X, Y) coordinate of a bounding box.
+     *
+     * @author kw126
+     *
+     * @param boundingBox the OpenCV Rect bounding box
+     * @return OpenCV Point representing the center coordinates
+     */
     private Point calculateCenter(Rect boundingBox) {
-
+        // Calculate center coordinate
         double centerX = boundingBox.x + boundingBox.width / 2.0;
         double centerY = boundingBox.y + boundingBox.height / 2.0;
         return new Point(centerX, centerY);
     }
 
-
-    // ---------- General Camera access functions
-
-    /**enables camera view in dashboard
-     * @param enable true to enable live view, false to disable live view
+    /**
+     * Enables or disables dashboard streaming for this camera.
+     *
+     * @author kw126
+     *
+     * @param enable true to enable dashboard stream, false to disable
      */
     public void enableDashBoardView(boolean enable) {
-        //if (enable)
-        //    FtcDashboard.getInstance().startCameraStream(visionPortal,4);
-        //else
-        //    FtcDashboard.getInstance().stopCameraStream();
+        // Placeholder for dashboard camera streaming
     }
 
-    /**displays camera view in driver station*/
+    /**
+     * Displays the camera stream on the Driver Station via CameraStreamServer.
+     *
+     * @author kw126
+     */
     public void enableCameraStream() {
+        // Attach VisionPortal to the Driver Station stream server
         CameraStreamServer.getInstance().setSource(visionPortal);
     }
 
-    /**enables live view for this camera
-     * @param enable true to enable live view, false to disable live view (live view is the camera stream preview that can be seen on the driver station and FTC dashboard)
+    /**
+     * Enables or disables camera live preview.
+     *
+     * @author kw126
+     *
+     * @param enable true to resume live view, false to stop
      */
     public void enableLiveView(boolean enable) {
         if (enable)
@@ -308,78 +319,123 @@ public class RampCamera extends SubsystemBase {
             visionPortal.stopLiveView();
     }
 
-    /**get camera frames per second
-     * @return the current camera frames per second
+    /**
+     * Retrieves the current camera processing frame rate in frames per second.
+     *
+     * @author kw126
+     *
+     * @return current frame rate in FPS
      */
-    public double GetCameraFPS () {
+    public double GetCameraFPS() {
         return visionPortal.getFps();
     }
 
-    /**Checks if camera is ready to stream (i.e. in streaming mode)
-     * @return true if camera is in streaming mode, false otherwise
+    /**
+     * Checks if the camera is currently in active streaming mode.
+     *
+     * @author kw126
+     *
+     * @return true if camera state is STREAMING, false otherwise
      */
-    public boolean cameraReady(){
-        return( visionPortal.getCameraState() == VisionPortal.CameraState.STREAMING);
+    public boolean cameraReady() {
+        return (visionPortal.getCameraState() == VisionPortal.CameraState.STREAMING);
     }
 
-    /** Set the camera gain and exposure. */
+    /**
+     * Sets manual exposure duration and gain on the camera sensor.
+     *
+     * @author kw126
+     *
+     * @param exposureMS exposure time in milliseconds
+     * @param gain sensor amplification gain
+     */
     private void setCameraExposure(int exposureMS, int gain) {
+        // Wait until camera enters streaming mode
+        while (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+        }
 
-        // wait until camera in streaming mode
-        while (visionPortal.getCameraState()!= VisionPortal.CameraState.STREAMING)
-        {}
-
-        // set exposure control to manual
+        // Configure manual exposure control
         ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
         if (exposureControl.getMode() != ExposureControl.Mode.Manual) {
             exposureControl.setMode(ExposureControl.Mode.Manual);
-
             RobotContainer.ActiveOpMode.sleep(50);
         }
 
-        // set exposure and gain
-        exposureControl.setExposure((long)exposureMS, TimeUnit.MILLISECONDS);
+        // Apply exposure and gain
+        exposureControl.setExposure((long) exposureMS, TimeUnit.MILLISECONDS);
         RobotContainer.ActiveOpMode.sleep(20);
         GainControl gainControl = visionPortal.getCameraControl(GainControl.class);
         gainControl.setGain(gain);
         RobotContainer.ActiveOpMode.sleep(20);
     }
 
-    /** Sets the camera exposure to automatic */
+    /**
+     * Sets camera exposure control to automatic.
+     *
+     * @author kw126
+     */
     private void SetAutoCameraExposure() {
+        // Wait until streaming
+        while (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+        }
 
-        // wait until camera in streaming mode
-        while (visionPortal.getCameraState()!= VisionPortal.CameraState.STREAMING)
-        {}
-
-        // set camera to auto
+        // Configure auto exposure
         ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
         exposureControl.setMode(ExposureControl.Mode.Auto);
     }
 
-
-    // Define a custom vision processor to flip frames using OpenCV Core
+    /**
+     * Custom OpenCV VisionProcessor that flips the camera frame 180 degrees
+     * (both horizontally and vertically) to correct for camera mounting orientation.
+     *
+     * @author kw126
+     */
     public static class ImageFlipProcessor implements VisionProcessor {
+        /**
+         * Initializes the flip processor.
+         *
+         * @author kw126
+         *
+         * @param width image width in pixels
+         * @param height image height in pixels
+         * @param cameraControlInternal camera calibration data
+         */
         @Override
         public void init(int width, int height, CameraCalibration cameraControlInternal) {
             // Initialization steps if necessary
         }
 
+        /**
+         * Flips the incoming frame 180 degrees using OpenCV Core.flip.
+         *
+         * @author kw126
+         *
+         * @param frame input image matrix from webcam
+         * @param captureTimeNanos timestamp in nanoseconds
+         * @return null user context
+         */
         @Override
         public Object processFrame(Mat frame, long captureTimeNanos) {
-            // Core.flip takes: (source, destination, flipCode)
-            // Flip Code parameters:
-            //  0 = Vertical Flip (Upside down)
-            //  1 = Horizontal Flip (Mirror image)
-            // -1 = Both (Flipped 180 degrees)
+            // Flip both horizontally and vertically (-1)
             Core.flip(frame, frame, -1);
             return null;
         }
 
+        /**
+         * Post-frame canvas overlay drawing.
+         *
+         * @author kw126
+         *
+         * @param canvas drawing canvas
+         * @param onscreenWidth screen width in pixels
+         * @param onscreenHeight screen height in pixels
+         * @param scaleBmpPxToCanvasPx pixel scaling factor
+         * @param scaleCanvasDensity density scaling factor
+         * @param userContext custom user context object
+         */
         @Override
         public void onDrawFrame(Canvas canvas, int onscreenWidth, int onscreenHeight, float scaleBmpPxToCanvasPx, float scaleCanvasDensity, Object userContext) {
-            // No custom screen drawings needed
+            // No custom canvas drawing needed
         }
     }
-
 }

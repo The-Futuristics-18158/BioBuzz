@@ -5,10 +5,10 @@ import com.arcrobotics.ftclib.geometry.Pose2d;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.RobotContainer;
-import org.firstinspires.ftc.teamcode.Subsystems.Cameras.LimeLight;
 
 /**
- * Subsystem to manage telemetry
+ * Subsystem to manage telemetry outputs to the FTC Driver Station.
+ * Supports dual modes: detailed diagnostic telemetry for testing and clean, concise telemetry for operators.
  *
  * @author Kw126
  */
@@ -18,92 +18,116 @@ public class TelemetrySubsystem extends SubsystemBase {
     public static Telemetry RCTelemetry;
     public static boolean testingTelemetry = true;
 
-    /** Place code here to initialize subsystem */
+    /**
+     * Initializes the telemetry subsystem using the active OpMode's telemetry handle.
+     *
+     * @author Kw126
+     */
     public TelemetrySubsystem() {
+        // Connect to active OpMode's telemetry instance
         RCTelemetry = RobotContainer.ActiveOpMode.telemetry;
     }
 
-    /** Method called periodically by the scheduler
-     * Place any code here you wish to have run periodically */
+    /**
+     * Method called periodically by the scheduler.
+     *
+     * @author Kw126
+     */
     @Override
     public void periodic() {
-
+        // Periodic telemetry updates if required
     }
 
-    /** what is displayed as part of this telemetry?
+    /**
+     * Placeholder method for custom testing telemetry.
      *
-     * runs when testing telemetry
+     * @author Kw126
      */
-    public void testingTelemetryEmpty(){
-        if (testingTelemetry){
-            //telemetry goes here
+    public void testingTelemetryEmpty() {
+        if (testingTelemetry) {
+            // Telemetry goes here
         }
     }
 
-    // place special subsystem methods here
-
-    /** what is displayed as part of this telemetry?
+    /**
+     * Placeholder method for custom operator telemetry.
      *
-     * runs when not testing telemetry
+     * @author Kw126
      */
-    public void operatorTelemetryEmpty(){
+    public void operatorTelemetryEmpty() {
         if (!testingTelemetry) {
-            //telemetry goes here
+            // Telemetry goes here
         }
     }
 
     /**
-     *Adds an item to the end if the telemetry being built for driver station display. The value shown will be the result of calling toString() on the provided value object. The caption and value are shown on the driver station separated by the #getCaptionValueSeparator() caption value separator. The item is removed if clear() or clearAll() is called.
+     * Adds an item to the end of the telemetry being built for driver station display in testing mode.
+     *
+     * @author Kw126
+     *
      * @param caption the caption to use
      * @param value the value to display
      */
-    public void addData(String caption, Object value){
+    public void addData(String caption, Object value) {
+        // Only output if currently in testing telemetry mode
         if (testingTelemetry) {
             RCTelemetry.addData(caption, value);
         }
     }
 
     /**
-     *Adds an item to the end if the telemetry being built for driver station display. The value shown will be the result of calling toString() on the provided value object. The caption and value are shown on the driver station separated by the #getCaptionValueSeparator() caption value separator. The item is removed if clear() or clearAll() is called.
+     * Adds an item to the telemetry being built for driver station display, routed by mode flag.
+     *
+     * @author Kw126
+     *
      * @param caption the caption to use
      * @param value the value to display
-     * @param telemetryForTesting If true the data will be shown with the testing data, if false the data will be shown with the operator data
+     * @param telemetryForTesting if true the data will be shown with testing data; if false, with operator data
      */
-    public void addData(String caption, Object value, boolean telemetryForTesting){
+    public void addData(String caption, Object value, boolean telemetryForTesting) {
+        // Route to telemetry output when the active mode matches telemetryForTesting
         if (testingTelemetry == telemetryForTesting) {
             RCTelemetry.addData(caption, value);
         }
     }
 
     /**
-     *Creates and returns a new line in the receiver Telemetry.
+     * Creates and outputs a new line in the receiver Telemetry in testing mode.
      *
-     *  @param caption the caption for the line
+     * @author Kw126
+     *
+     * @param caption the caption for the line
      */
-    public void addLine(String caption){
+    public void addLine(String caption) {
+        // Add line if in testing telemetry mode
         if (testingTelemetry) {
             RCTelemetry.addLine(caption);
         }
     }
 
     /**
-     *Creates and returns a new line in the receiver Telemetry.
+     * Creates and outputs a new line in the receiver Telemetry, routed by mode flag.
      *
-     *  @param caption the caption for the line
-     *  @param telemetryForTesting If true the data will be shown with the testing data, if false the data will be shown with the operator data
+     * @author Kw126
+     *
+     * @param caption the caption for the line
+     * @param telemetryForTesting if true the data will be shown with testing data; if false, with operator data
      */
-    public void addLine(String caption, boolean telemetryForTesting){
+    public void addLine(String caption, boolean telemetryForTesting) {
+        // Output line when current mode matches telemetryForTesting
         if (testingTelemetry == telemetryForTesting) {
             RCTelemetry.addLine(caption);
         }
     }
 
     /**
-     * displays robot fieldX, fieldY, and Yaw.
+     * Displays robot fieldX, fieldY, and yaw heading from odometry.
+     * Runs when in testing telemetry mode.
      *
-     * Runs when testing telemetry.
+     * @author Kw126
      */
-    public void odometryTelemetry(){
+    public void odometryTelemetry() {
+        // Display position and heading if testing mode is active
         if (testingTelemetry) {
             Pose2d position = RobotContainer.odometry.getCurrentPos();
             RCTelemetry.addData("fieldX", position.getX());
@@ -112,23 +136,27 @@ public class TelemetrySubsystem extends SubsystemBase {
         }
     }
 
-    /**displays interval time and execute time
+    /**
+     * Displays loop interval time and execution time.
+     * Runs when in testing telemetry mode.
      *
-     * runs when testing telemetry
+     * @author Kw126
      */
-    public void timerOdometry(){
-        if (testingTelemetry){
+    public void timerOdometry() {
+        // Output timing metrics
+        if (testingTelemetry) {
             RCTelemetry.addData("interval time(ms)", RobotContainer.intervaltime);
             RCTelemetry.addData("execute time(ms)", RobotContainer.exectimer.milliseconds());
         }
     }
 
-
-
-    /**displays ascii art of the number 0
-     * runs when not testing telemetry
+    /**
+     * Displays ASCII art of the number 0.
+     * Runs when in operator telemetry mode.
+     *
+     * @author Kw126
      */
-    public void ascii_0(){
+    public void ascii_0() {
         if (!testingTelemetry) {
             RCTelemetry.addLine("□◢■■■■◣□");
             RCTelemetry.addLine("◢■■■■■■◣");
@@ -143,10 +171,13 @@ public class TelemetrySubsystem extends SubsystemBase {
         }
     }
 
-    /**displays ascii art of the number 1
-     * runs when not testing telemetry
+    /**
+     * Displays ASCII art of the number 1.
+     * Runs when in operator telemetry mode.
+     *
+     * @author Kw126
      */
-    public void ascii_1(){
+    public void ascii_1() {
         if (!testingTelemetry) {
             RCTelemetry.addLine("□◢■■■□□");
             RCTelemetry.addLine("◢■■■■□□");
@@ -160,10 +191,13 @@ public class TelemetrySubsystem extends SubsystemBase {
         }
     }
 
-    /**displays ascii art of the number 2
-     * runs when not testing telemetry
+    /**
+     * Displays ASCII art of the number 2.
+     * Runs when in operator telemetry mode.
+     *
+     * @author Kw126
      */
-    public void ascii_2(){
+    public void ascii_2() {
         if (!testingTelemetry) {
             RCTelemetry.addLine("□◢■■■■◣□");
             RCTelemetry.addLine("◢■■■■■■◣");
@@ -178,10 +212,13 @@ public class TelemetrySubsystem extends SubsystemBase {
         }
     }
 
-    /**displays ascii art of the number 3
-     * runs when not testing telemetry
+    /**
+     * Displays ASCII art of the number 3.
+     * Runs when in operator telemetry mode.
+     *
+     * @author Kw126
      */
-    public void ascii_3(){
+    public void ascii_3() {
         if (!testingTelemetry) {
             RCTelemetry.addLine("□◢■■■■◣□");
             RCTelemetry.addLine("◢■■■■■■◣");
@@ -196,10 +233,13 @@ public class TelemetrySubsystem extends SubsystemBase {
         }
     }
 
-    /**displays ascii art of the number 4
-     * runs when not testing telemetry
+    /**
+     * Displays ASCII art of the number 4.
+     * Runs when in operator telemetry mode.
+     *
+     * @author Kw126
      */
-    public void ascii_4(){
+    public void ascii_4() {
         if (!testingTelemetry) {
             RCTelemetry.addLine("■■■□□■■■□");
             RCTelemetry.addLine("■■■□□■■■□");
@@ -213,10 +253,13 @@ public class TelemetrySubsystem extends SubsystemBase {
         }
     }
 
-    /**displays ascii art of the number 5
-     * runs when not testing telemetry
+    /**
+     * Displays ASCII art of the number 5.
+     * Runs when in operator telemetry mode.
+     *
+     * @author Kw126
      */
-    public void ascii_5(){
+    public void ascii_5() {
         if (!testingTelemetry) {
             RCTelemetry.addLine("■■■■■■■■");
             RCTelemetry.addLine("■■■■■■■■");
@@ -231,10 +274,13 @@ public class TelemetrySubsystem extends SubsystemBase {
         }
     }
 
-    /**displays ascii art of the number 6
-     * runs when not testing telemetry
+    /**
+     * Displays ASCII art of the number 6.
+     * Runs when in operator telemetry mode.
+     *
+     * @author Kw126
      */
-    public void ascii_6(){
+    public void ascii_6() {
         if (!testingTelemetry) {
             RCTelemetry.addLine("□◢■■■■■■");
             RCTelemetry.addLine("◢■■■■■■■");
@@ -249,10 +295,13 @@ public class TelemetrySubsystem extends SubsystemBase {
         }
     }
 
-    /**displays ascii art of the number 7
-     * runs when not testing telemetry
+    /**
+     * Displays ASCII art of the number 7.
+     * Runs when in operator telemetry mode.
+     *
+     * @author Kw126
      */
-    public void ascii_7(){
+    public void ascii_7() {
         if (!testingTelemetry) {
             RCTelemetry.addLine("■■■■■■■■");
             RCTelemetry.addLine("■■■■■■■■");
@@ -266,10 +315,13 @@ public class TelemetrySubsystem extends SubsystemBase {
         }
     }
 
-    /**displays ascii art of the number 8
-     * runs when not testing telemetry
+    /**
+     * Displays ASCII art of the number 8.
+     * Runs when in operator telemetry mode.
+     *
+     * @author Kw126
      */
-    public void ascii_8(){
+    public void ascii_8() {
         if (!testingTelemetry) {
             RCTelemetry.addLine("□◢■■■■◣□");
             RCTelemetry.addLine("◢■■■■■■◣");
@@ -284,10 +336,13 @@ public class TelemetrySubsystem extends SubsystemBase {
         }
     }
 
-    /**displays ascii art of the number 9
-     * runs when not testing telemetry
+    /**
+     * Displays ASCII art of the number 9.
+     * Runs when in operator telemetry mode.
+     *
+     * @author Kw126
      */
-    public void ascii_9(){
+    public void ascii_9() {
         if (!testingTelemetry) {
             RCTelemetry.addLine("□◢■■■■◣□");
             RCTelemetry.addLine("◢■■■■■■◣");
@@ -302,23 +357,23 @@ public class TelemetrySubsystem extends SubsystemBase {
         }
     }
 
-
     /**
-     * Sends the receiver {@link Telemetry} to the driver station if more than the {@link #getMsTransmissionInterval()
-     * transmission interval} has elapsed since the last transmission, or schedules the transmission
-     * of the receiver should no subsequent {@link Telemetry} state be scheduled for transmission before
-     * the {@link #getMsTransmissionInterval() transmission interval} expires.
+     * Sends the buffered telemetry data to the FTC driver station display.
+     *
+     * @author Kw126
      */
-    public void update(){
-        //ken();
+    public void update() {
+        // Transmit telemetry buffer to driver station
         RCTelemetry.update();
     }
 
-
-    /**toggles telemetry mode between testing and operator
+    /**
+     * Toggles the telemetry mode between testing (detailed) and operator (minimal/display).
      *
+     * @author Kw126
      */
-    public void telemetryModeToggle(){
+    public void telemetryModeToggle() {
+        // Toggle the telemetry mode flag
         testingTelemetry = !testingTelemetry;
     }
 }

@@ -1,72 +1,81 @@
 package org.firstinspires.ftc.teamcode.Subsystems.Sensors;
 
 import com.arcrobotics.ftclib.command.SubsystemBase;
-import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
-
 /**
- * Place description of subsystem here
+ * Subsystem that uses a REV Color Sensor V3 on the intake ramp to detect
+ * when a game artifact is present and ready for uptake or shooting.
  *
  * @author Blackthrush
  */
 public class UptakeSensor extends SubsystemBase {
 
-    // Local objects and variables here
+    // REV Color Sensor V3 hardware
     private RevColorSensorV3 uptakeSensor;
-
-    /** Place code here to initialize subsystem */
-    public UptakeSensor() {
-
-    uptakeSensor = RobotContainer.ActiveOpMode.hardwareMap.get(RevColorSensorV3.class, "uptakeSensor");
-    uptakeSensor.initialize();
-
-    }
-
-    /** Method called periodically by the scheduler
-     * Place any code here you wish to have run periodically */
-    @Override
-    public void periodic() {
-
-
-    }
-
     private boolean isUptakeSensorInitialized = true;
 
-
-    /**Uses the distance sensor to determine if an artifact is present on the ramp.
-     * @return true if an artifact is detected, false otherwise
+    /**
+     * Initializes the uptake sensor from the hardware map.
+     *
+     * @author Blackthrush
      */
-    public boolean isUpakeArtifactPresent(){
+    public UptakeSensor() {
+        // Retrieve and initialize the color/distance sensor from the hardware map
+        uptakeSensor = RobotContainer.ActiveOpMode.hardwareMap.get(RevColorSensorV3.class, "uptakeSensor");
+        uptakeSensor.initialize();
+    }
+
+    /**
+     * Method called periodically by the scheduler.
+     *
+     * @author Blackthrush
+     */
+    @Override
+    public void periodic() {
+        // Periodic sensor monitoring if needed
+    }
+
+    /**
+     * Uses the distance sensor to determine if an artifact is present on the intake ramp.
+     * Includes error handling and automatic sensor re-initialization if a communication error occurs.
+     *
+     * @author Blackthrush
+     *
+     * @return true if an artifact is detected within 5 cm, false otherwise
+     */
+    public boolean isUpakeArtifactPresent() {
         try {
+            // Read distance from the sensor in centimeters
             double distance = uptakeSensor.getDistance(DistanceUnit.CM);
+
+            // An artifact is present if the measured distance is less than 5.0 cm
             return (distance < 5.0);
         } catch (Exception e) {
-            // Log the error (if you can), and handle recovery
+            // Log the error to telemetry
             RobotContainer.telemetrySubsystem.addData("uptake sensor Error", e.getMessage());
             RobotContainer.telemetrySubsystem.update();
-            // Try to recover the sensor
+
+            // Attempt recovery if first failure
             if (isUptakeSensorInitialized) {
-                // First error: attempt to re-initialize
                 isUptakeSensorInitialized = false;
                 try {
-                    // Re-fetch and re-initialize sensor
+                    // Re-fetch and re-initialize the sensor device
                     uptakeSensor = RobotContainer.ActiveOpMode.hardwareMap.get(RevColorSensorV3.class, "uptakeSensor");
                     uptakeSensor.initialize();
                     isUptakeSensorInitialized = true;
                 } catch (Exception ex) {
-                    // failed to recover
+                    // Recovery failed
                     RobotContainer.telemetrySubsystem.addData("uptake sensor recovery failed", ex.getMessage());
                     RobotContainer.telemetrySubsystem.update();
                 }
-
             }
-            return false; // Can't determine presence, assume no artifact
+
+            // Return false if unable to read distance reliably
+            return false;
         }
     }
-
-
 }

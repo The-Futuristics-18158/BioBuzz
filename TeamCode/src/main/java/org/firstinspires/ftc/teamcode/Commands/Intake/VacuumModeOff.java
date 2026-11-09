@@ -1,47 +1,73 @@
 package org.firstinspires.ftc.teamcode.Commands.Intake;
 
 import com.arcrobotics.ftclib.command.CommandBase;
-
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
-
-// command template
+/**
+ * Command that deactivates vacuum mode: stops the intake rollers, lowers the ramp lift,
+ * and clears the vacuuming state flag.
+ *
+ * @author gbuckholtz
+ */
 public class VacuumModeOff extends CommandBase {
 
-    // constructor
+    /**
+     * Constructs a VacuumModeOff command, requiring Intake and RampLift subsystems.
+     *
+     * @author gbuckholtz
+     */
     public VacuumModeOff() {
-
-        // add subsystem requirements (if any) - for example:
-        //addRequirements(RobotContainer.drivesystem);
+        // Require intake and ramp lift subsystems
         addRequirements(RobotContainer.intake);
         addRequirements(RobotContainer.ramplift);
     }
 
-    // This method is called once when command is started
+    /**
+     * Stops intake, lowers ramp, and clears vacuuming flag.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void initialize() {
+        // Stop intake roller
         RobotContainer.intake.intakeStop();
+
+        // Lower ramp back down
         RobotContainer.ramplift.Lower();
+
+        // Clear vacuuming status flag
         RobotContainer.isVacuuming = false;
     }
 
-    // This method is called periodically while command is active
+    /**
+     * Periodic execution loop.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void execute() {
     }
 
-    // This method to return true only when command is to finish. Otherwise return false
+    /**
+     * Finishes immediately after updating states.
+     *
+     * @author gbuckholtz
+     *
+     * @return always true
+     */
     @Override
     public boolean isFinished() {
-
         return true;
-
     }
 
-    // This method is called once when command is finished.
+    /**
+     * Called when the command ends.
+     *
+     * @author gbuckholtz
+     *
+     * @param interrupted true if interrupted
+     */
     @Override
     public void end(boolean interrupted) {
-
     }
-
 }

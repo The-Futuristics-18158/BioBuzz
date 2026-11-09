@@ -1,60 +1,69 @@
 package org.firstinspires.ftc.teamcode.Commands.Intake;
 
 import com.arcrobotics.ftclib.command.CommandBase;
-import com.qualcomm.robotcore.util.ElapsedTime;
-
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
-
-// command template
+/**
+ * Command to reverse the intake rollers to clear artifact jams or eject artifacts.
+ * Stops the intake when the command ends or is interrupted.
+ *
+ * @author gbuckholtz
+ */
 public class ReverseIntakeCommand extends CommandBase {
 
-    private ElapsedTime timer;
-    boolean finished;
-
-    // constructor
+    /**
+     * Constructs a ReverseIntakeCommand and reserves the Intake subsystem.
+     *
+     * @author gbuckholtz
+     */
     public ReverseIntakeCommand() {
-
-//        // add subsystem requirements (if any) - for example:
-//        //addRequirements(RobotContainer.drivesystem);
+        // Declare intake subsystem requirement
         addRequirements(RobotContainer.intake);
-//
-//        timer = new ElapsedTime();
-//        timer.reset();
-
     }
 
-    // This method is called once when command is started
+    /**
+     * Called once when the command begins.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void initialize() {
-
-//        timer.reset();
-//        finished = false;
-
+        // Initialization if needed
     }
 
-    // This method is called periodically while command is active
+    /**
+     * Periodically commands the intake to run in reverse.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void execute() {
-
+        // Run intake in reverse
         RobotContainer.intake.intakeReverse();
-
     }
 
-    // This method to return true only when command is to finish. Otherwise return false
+    /**
+     * Runs continuously while scheduled until interrupted.
+     *
+     * @author gbuckholtz
+     *
+     * @return always false
+     */
     @Override
     public boolean isFinished() {
-
         return false;
-
     }
 
-    // This method is called once when command is finished.
+    /**
+     * Stops the intake when the command finishes or is interrupted.
+     *
+     * @author gbuckholtz
+     *
+     * @param interrupted true if command was interrupted
+     */
     @Override
     public void end(boolean interrupted) {
-
+        // Stop the intake motor
         RobotContainer.intake.intakeStop();
-
     }
-
 }

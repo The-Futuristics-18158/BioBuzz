@@ -1,59 +1,79 @@
 package org.firstinspires.ftc.teamcode.Commands.Intake;
 
 import com.arcrobotics.ftclib.command.CommandBase;
-
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
-
-// command template
+/**
+ * Command that toggles vacuum mode, synchronizing intake roller running and ramp lifting.
+ *
+ * @author gbuckholtz
+ */
 public class VacuumMode extends CommandBase {
 
-    static boolean onoff;
+    private static boolean onoff;
 
-    // constructor
+    /**
+     * Constructs a VacuumMode toggle command, requiring both Intake and RampLift subsystems.
+     *
+     * @author gbuckholtz
+     */
     public VacuumMode() {
-
-        // add subsystem requirements (if any) - for example:
+        // Require intake and ramp lift subsystems
         addRequirements(RobotContainer.intake);
         addRequirements(RobotContainer.ramplift);
 
         onoff = false;
     }
 
-    // This method is called once when command is started
+    /**
+     * Toggles intake and ramp lift states based on current vacuum state.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void initialize() {
-        if (!onoff)
-        {
+        if (!onoff) {
+            // Start vacuuming: run intake and raise ramp
             RobotContainer.intake.intakeRun();
             RobotContainer.ramplift.Raise();
-        }
-        else
-        {
+        } else {
+            // Stop vacuuming: stop intake and lower ramp
             RobotContainer.intake.intakeStop();
             RobotContainer.ramplift.Lower();
         }
-
-
+        // Invert toggle state
+        onoff = !onoff;
     }
 
-    // This method is called periodically while command is active
+    /**
+     * Periodic execution loop.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void execute() {
     }
 
-    // This method to return true only when command is to finish. Otherwise return false
+    /**
+     * Instantaneous toggle finishes immediately after initialize.
+     *
+     * @author gbuckholtz
+     *
+     * @return always true
+     */
     @Override
     public boolean isFinished() {
-
         return true;
-
     }
 
-    // This method is called once when command is finished.
+    /**
+     * Called when the command ends.
+     *
+     * @author gbuckholtz
+     *
+     * @param interrupted true if interrupted
+     */
     @Override
     public void end(boolean interrupted) {
-
     }
-
 }

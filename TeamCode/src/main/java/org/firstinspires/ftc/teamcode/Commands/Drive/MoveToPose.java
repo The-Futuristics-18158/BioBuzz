@@ -9,76 +9,102 @@ import org.firstinspires.ftc.teamcode.RobotContainer;
 
 import java.util.ArrayList;
 
-
-// This command moves robot in a straight line path from
-// current pose to the supplied destination pose following the
-// supplied max speed (m/s) and max acceleration (m/s2)
+/**
+ * Command that moves the robot in a straight line from its current odometry pose
+ * to a specified target Pose2d, using a generated FollowPath trajectory with defined speed and acceleration limits.
+ *
+ * @author gbuckholtz
+ */
 public class MoveToPose extends CommandBase {
 
-    // the follow-path command that this command will use
-    FollowPath cmd;
+    // Internal FollowPath instance delegated to execute the trajectory
+    private FollowPath cmd;
 
-    // local copy of input parameters
-    double maxSpeed, maxAccel;
-    Pose2d dest;
+    // Trajectory parameters
+    private double maxSpeed;
+    private double maxAccel;
+    private Pose2d dest;
 
-    // constructor
+    /**
+     * Constructs a MoveToPose command.
+     *
+     * @author gbuckholtz
+     *
+     * @param maxSpeed maximum linear travel speed in meters per second
+     * @param maxAccel maximum linear acceleration in meters per second squared
+     * @param destination target destination Pose2d (X, Y in meters, rotation)
+     */
     public MoveToPose(double maxSpeed,
                       double maxAccel,
                       Pose2d destination) {
-
-        // record input parameters
-        this.maxSpeed= maxSpeed;
+        this.maxSpeed = maxSpeed;
         this.maxAccel = maxAccel;
         this.dest = destination;
+
+        // Requires drivetrain
         addRequirements(RobotContainer.drivesystem);
     }
 
-    // This method is called once when command is started
+    /**
+     * Calculates the straight-line heading from current position to destination,
+     * constructs the FollowPath command, and initializes it.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void initialize() {
-
-        // current robot pose
+        // Read current robot pose from odometry
         Pose2d currentPose = RobotContainer.odometry.getCurrentPos();
 
-        // straight-line travel heading
-        Rotation2d heading = new Rotation2d(dest.getX()-currentPose.getX(),
-                dest.getY()- currentPose.getY());
+        // Calculate straight-line heading vector
+        Rotation2d heading = new Rotation2d(dest.getX() - currentPose.getX(),
+                dest.getY() - currentPose.getY());
 
-        // construct follow-path command
+        // Construct underlying FollowPath command
         cmd = new FollowPath(maxSpeed,
                 maxAccel,
                 0.0,
                 0.0,
                 heading,
-                new ArrayList<Translation2d>() {{ }},
+                new ArrayList<Translation2d>(),
                 new Pose2d(dest.getX(), dest.getY(), heading),
-                dest.getRotation()
-        );
+                dest.getRotation());
 
-        // initialize the follow-path command
+        // Initialize path following
         cmd.initialize();
     }
 
-    // This method is called periodically while command is active
+    /**
+     * Periodically executes the delegated FollowPath command.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void execute() {
         cmd.execute();
     }
 
-    // This method to return true only when command is to finish. Otherwise return false
+    /**
+     * Determines whether the straight-line trajectory has completed.
+     *
+     * @author gbuckholtz
+     *
+     * @return true when the underlying FollowPath command is finished, false otherwise
+     */
     @Override
     public boolean isFinished() {
-
-        // we are finished only when follow-path is finished
         return cmd.isFinished();
     }
 
-    // This method is called once when command is finished.
+    /**
+     * Finishes or interrupts the underlying FollowPath command.
+     *
+     * @author gbuckholtz
+     *
+     * @param interrupted true if interrupted by the scheduler
+     */
     @Override
     public void end(boolean interrupted) {
-        // we are ending, end the follow-path command
         cmd.end(interrupted);
     }
-
 }

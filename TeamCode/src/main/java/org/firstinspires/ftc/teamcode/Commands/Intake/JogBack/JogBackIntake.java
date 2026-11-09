@@ -1,44 +1,60 @@
 package org.firstinspires.ftc.teamcode.Commands.Intake.JogBack;
 
 import com.arcrobotics.ftclib.command.CommandBase;
-import org.firstinspires.ftc.teamcode.RobotContainer;
 
-
-// command template
+/**
+ * Command to jog the intake backwards briefly to relieve tension or clear artifacts.
+ *
+ * @author gbuckholtz
+ */
 public class JogBackIntake extends CommandBase {
 
-    // constructor
+    /**
+     * Constructs a JogBackIntake command.
+     *
+     * @author gbuckholtz
+     */
     public JogBackIntake() {
-
-        // add subsystem requirements (if any) - for example:
-        //addRequirements(RobotContainer.intake);
-
     }
 
-    // This method is called once when command is started
+    /**
+     * Initializes the jog back command.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void initialize() {
-
-        //RobotContainer.intake.intakeReverse();
     }
 
-    // This method is called periodically while command is active
+    /**
+     * Periodic execution loop.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void execute() {
-
     }
 
-    // This method to return true only when command is to finish. Otherwise return false
+    /**
+     * Instantaneous jog action finishes immediately.
+     *
+     * @author gbuckholtz
+     *
+     * @return always true
+     */
     @Override
     public boolean isFinished() {
         return true;
     }
 
-    // This method is called once when command is finished.
+    /**
+     * Called when the command ends or is interrupted.
+     *
+     * @author gbuckholtz
+     *
+     * @param interrupted true if interrupted by the scheduler
+     */
     @Override
     public void end(boolean interrupted) {
-
-        //RobotContainer.intake.intakeStop();
     }
-
 }

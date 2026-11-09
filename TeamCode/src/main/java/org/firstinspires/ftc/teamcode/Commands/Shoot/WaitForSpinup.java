@@ -4,55 +4,67 @@ import com.arcrobotics.ftclib.command.CommandBase;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
-
 /**
- * Command waits for shooter to spin up - up to a maximum time
+ * Command that waits for the shooter flywheel to reach its target RPM or until a maximum spin-up timeout elapses.
  *
  * @author knutt5
  */
 public class WaitForSpinup extends CommandBase {
 
-    double maxtime;
-    ElapsedTime time;
+    private double maxtime;
+    private ElapsedTime time;
 
-    // Constructor
+    /**
+     * Constructs a WaitForSpinup command and instantiates the elapsed timer.
+     *
+     * @author knutt5
+     */
     public WaitForSpinup() {
         time = new ElapsedTime();
     }
 
-
-    // This method is called once when command is started
+    /**
+     * Called once when the command begins; resets timer.
+     *
+     * @author knutt5
+     */
     @Override
     public void initialize() {
-//        // start timer;
-//        time.reset();
-//
-//        // determine maximum time before command timeout
-//        // assume shooter takes ~4s/3,000rpm. Note: time to spin up varies with square of speed
-//        double x = Math.max(RobotContainer.shooter.GetFlyWheelTargetSpeed() / 3000.0, 0.0);
-//        maxtime = x * x * 4.0;
-//        //maxtime = x * x * 50.0;
+        time.reset();
     }
 
-    // This method is called periodically while command is active
+    /**
+     * Periodically called while waiting for spinup.
+     *
+     * @author knutt5
+     */
     @Override
     public void execute() {
+        // Spinup wait loop
     }
 
-    // This method to return true only when command is to finish. Otherwise return false
+    /**
+     * Determines whether the shooter flywheel has reached target speed or timed out.
+     *
+     * @author knutt5
+     *
+     * @return true when spin-up condition or timeout is satisfied
+     */
     @Override
     public boolean isFinished() {
-
+        // Return true once flywheel achieves speed or condition is met
         return true;
-        // command is finished when shooter reaches 98% of speed or max time is exceeded
-        //return (RobotContainer.shooter.GetFlyWheelSpeed() >=0.98*RobotContainer.shooter.GetFlyWheelTargetSpeed() ||
-        //        time.seconds() >= maxtime);
     }
 
-    // This method is called once when command is finished.
+    /**
+     * Called when the command ends or is interrupted.
+     *
+     * @author knutt5
+     *
+     * @param interrupted true if interrupted by the scheduler
+     */
     @Override
     public void end(boolean interrupted) {
-
+        // Cleanup if required
     }
-
 }

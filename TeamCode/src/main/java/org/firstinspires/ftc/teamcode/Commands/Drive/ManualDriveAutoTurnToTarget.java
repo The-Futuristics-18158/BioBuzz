@@ -8,156 +8,162 @@ import com.arcrobotics.ftclib.geometry.Vector2d;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 import org.firstinspires.ftc.teamcode.Utility.Utils;
 
-
-// command controls mecanum in manual mode
+/**
+ * TeleOp drive command combining manual translational drive with automated target tracking.
+ * Translates according to driver joystick commands while continuously calculating and rotating
+ * the robot heading to aim directly at the active alliance goal.
+ *
+ * @author gbuckholtz
+ */
 public class ManualDriveAutoTurnToTarget extends CommandBase {
 
-    double powerFactor;
-    double basePowerFacter = 0.65;
-    double boostPowerFacter = 0.35;
-    double slowPowerFactor = 0.4;
-    double m_endangle;
+    private double powerFactor;
+    private double basePowerFacter = 0.65;
+    private double boostPowerFacter = 0.35;
+    private double slowPowerFactor = 0.4;
+    private double m_endangle;
 
-    // speed to rotate robot - determined by PID controller
-    double m_angleerror;
+    // Heading error
+    private double m_angleerror;
 
-    // PID gains for rotating robot towards ball target
-    public static double kpmax = 0.13; // was 0.15 Feb 5/2026 KN
-    public static double kpmin = 0.05; // was 0.05 Feb 5/2026 KN
+    // Adaptive PID gains for automated target rotation
+    public static double kpmax = 0.13;
+    public static double kpmin = 0.05;
     public static double kp_deg = 90.0;
-    public static double ki = 0.2; // 0.20;
+    public static double ki = 0.2;
     public static double ki_range = 5.0;
     public static double ki_zerorange = 0.5;
-    public static double kd = 0.019; // 0.0035;
+    public static double kd = 0.019;
     public static double kd_deg = 110.0;
 
-    // filtered error angle
-    double filtered_error;
+    // Low-pass filtered angle error
+    private double filtered_error;
     public static double LPFvalue = 0.93;
 
-    PIDController pidController = new PIDController(kpmax, ki, kd);
+    private PIDController pidController = new PIDController(kpmax, ki, kd);
 
-
-    // constructor
+    /**
+     * Constructs a ManualDriveAutoTurnToTarget command requiring the drivetrain.
+     *
+     * @author gbuckholtz
+     */
     public ManualDriveAutoTurnToTarget() {
-
-        // this command requires mecanum drive subsystem
+        // Require drivetrain
         addRequirements(RobotContainer.drivesystem);
-
     }
 
-    // This method is called once when command is started
+    /**
+     * Calculates initial target heading to goal and resets PID controllers.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void initialize() {
-
-        // determine target angle
-
-        // get our current position and the target position
+        // Calculate goal target vector from odometry
         Pose2d pose = RobotContainer.odometry.getCurrentPos();
-        Translation2d targetPose = new Translation2d(); // = RobotContainer.targeting.GetShotTaget();
+        Translation2d targetPose = new Translation2d();
 
-        // determine target angle
+        // Calculate heading in degrees
         double angle_rad = (new Vector2d(pose.getX() - targetPose.getX(), pose.getY() - targetPose.getY())).angle();
         m_endangle = Math.toDegrees(angle_rad);
 
-        // reset PID controller
+        // Reset controller
         pidController.reset();
         m_angleerror = 0.0;
 
-        // determine initial error
+        // Initialize filtered error
         filtered_error = Utils.AngleDifference(m_endangle, RobotContainer.gyro.getYawAngle());
     }
 
-    // This method is called periodically while command is active
+    /**
+     * Periodically processes translational joystick inputs and applies automated rotational PID control to track target.
+     *
+     * @author gbuckholtz
+     */
     @Override
     public void execute() {
-
-        // get joystick input - for competition
+        // Read joystick inputs
         double dX = RobotContainer.ActiveOpMode.gamepad1.left_stick_x;
         double dY = -RobotContainer.ActiveOpMode.gamepad1.left_stick_y;
         double speedTrigger = RobotContainer.ActiveOpMode.gamepad1.right_trigger;
         double slowTrigger = RobotContainer.ActiveOpMode.gamepad1.left_trigger;
 
-        if (RobotContainer.isRedAlliance==false){
+        // Invert X and Y for blue alliance
+        if (!RobotContainer.isRedAlliance) {
             dX = dX * -1;
             dY = dY * -1;
         }
 
-        // implement dead-zoning of joystick inputs
+        // Apply dead-zoning
         dX = Math.abs(dX) > 0.05 ? dX : 0;
         dY = Math.abs(dY) > 0.05 ? dY : 0;
 
-
+        // Compute power factor
         powerFactor = basePowerFacter + (speedTrigger * boostPowerFacter) - (slowTrigger * slowPowerFactor);
-
-        // Since the drive was shifted to closed loop (i.e. requested velocities), change joystick input max values
-        // to MAX_SPEED values.
         powerFactor = powerFactor * RobotContainer.drivesystem.MAX_SPEED;
 
-        // include power factor to get full x,y and omega speeds beings requested
+        // Scale translation velocities
         dX *= powerFactor;
         dY *= powerFactor;
 
-        // ---------- Auto Aim to Target - Robot Rotation Control ----------
-
-        // determine target angle
-
-        // get our current position and the target position
+        // Automated aim calculation
         Pose2d pose = RobotContainer.odometry.getCurrentPos();
-        Translation2d targetPose = new Translation2d(); //= RobotContainer.targeting.GetShotTaget();
-
-        // determine target angle
+        Translation2d targetPose = new Translation2d();
         double angle_rad = (new Vector2d(pose.getX() - targetPose.getX(), pose.getY() - targetPose.getY())).angle();
         m_endangle = Math.toDegrees(angle_rad);
 
-        // determine speed to rotate robot
+        // Compute error and low-pass filter
         m_angleerror = Utils.AngleDifference(m_endangle, RobotContainer.gyro.getYawAngle());
+        filtered_error = LPFvalue * filtered_error + (1.0 - LPFvalue) * m_angleerror;
 
-        // apply LPF to angle error
-        filtered_error = LPFvalue*filtered_error + (1.0-LPFvalue)*m_angleerror;
-
-        // set p gain
+        // Adaptive proportional gain
         double pgain = kpmax - (kpmax - kpmin) * Math.abs(m_angleerror) / kp_deg;
         pgain = Math.max(kpmin, pgain);
         pgain = Math.min(kpmax, pgain);
         pidController.setP(pgain);
 
-        // only integrate if within 10deg
+        // Clamped integral action
         if (Math.abs(m_angleerror) < ki_range)
             pidController.setI(ki);
         else
             pidController.setI(0.0);
 
-        // zero out the integrated error if very close to target
+        // Zero integrator near zero error
         if (Math.abs(m_angleerror) < ki_zerorange)
             pidController.reset();
 
-        double gain = Math.max(0.0, kd*(1.0-Math.abs(filtered_error)/kd_deg));
+        // Scaled derivative gain
+        double gain = Math.max(0.0, kd * (1.0 - Math.abs(filtered_error) / kd_deg));
         pidController.setD(gain);
 
-        // execute PID controller
-        double omega  = pidController.calculate(m_angleerror);
+        // Compute automated rotation
+        double omega = pidController.calculate(m_angleerror);
 
-
-        // ---------- Drive Robot ----------
-
-        // drive robot
+        // Command field-oriented drive
         RobotContainer.drivesystem.FieldDrive(dX, dY, omega);
     }
 
-    // This method to return true only when command is to finish. Otherwise return false
+    /**
+     * Runs continuously during TeleOp until canceled.
+     *
+     * @author gbuckholtz
+     *
+     * @return always false
+     */
     @Override
     public boolean isFinished() {
-
         return false;
     }
 
-    // This method is called once when command is finished.
+    /**
+     * Halts drivetrain when command ends or is interrupted.
+     *
+     * @author gbuckholtz
+     *
+     * @param interrupted true if interrupted by scheduler
+     */
     @Override
     public void end(boolean interrupted) {
-
-        // stop robot
-        RobotContainer.drivesystem.RobotDrive(0.0,0.0, 0.0);
+        RobotContainer.drivesystem.RobotDrive(0.0, 0.0, 0.0);
     }
-
 }
