@@ -5,13 +5,15 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
 /**
- * Subsystem to control the kicker mechanism using continuous rotation servos.
+ * Subsystem to control the shooter kicker mechanism.
+ * Uses continuous rotation servos equipped with paddles on the end to kick game elements
+ * into the shooter mechanism (replacing the previous ramp-lift approach).
  *
  * @author superzokabear
  */
 public class Kicker extends SubsystemBase {
 
-    // Kicker servo hardware
+    // Kicker servo hardware (servos equipped with paddles to kick game elements)
     private final Servo leftRampServo;
     private final Servo rightRampServo;
 
@@ -22,7 +24,8 @@ public class Kicker extends SubsystemBase {
     private boolean isKicking = false;
 
     /**
-     * Initializes the kicker subsystem and configures continuous servos to run in opposite directions.
+     * Initializes the kicker subsystem and configures the continuous rotation paddle servos
+     * to run in opposing directions.
      *
      * @author superzokabear
      */
@@ -31,7 +34,7 @@ public class Kicker extends SubsystemBase {
         leftRampServo = RobotContainer.ActiveOpMode.hardwareMap.get(Servo.class, "leftKickerServo");
         rightRampServo = RobotContainer.ActiveOpMode.hardwareMap.get(Servo.class, "rightKickerServo");
 
-        // Servos run in opposite directions
+        // Servos run in opposite directions to sweep paddles synchronously
         leftRampServo.setDirection(Servo.Direction.FORWARD);
         rightRampServo.setDirection(Servo.Direction.REVERSE);
 
@@ -41,16 +44,17 @@ public class Kicker extends SubsystemBase {
 
     /**
      * Method called periodically by the command scheduler.
+     * Monitors sensor state to ensure the paddle rotates clear of the feed path when kicking completes.
      *
      * @author superzokabear
      */
     @Override
     public void periodic() {
-        // Periodic sensor check to ensure servo parts stay clear when done
+        // Periodic sensor check to ensure paddle parts stay clear when done
     }
 
     /**
-     * Starts continuous rotation on both servos in opposite directions.
+     * Starts continuous rotation on both kicker servos to swing the paddles and kick the game element.
      *
      * @author superzokabear
      */
@@ -61,7 +65,7 @@ public class Kicker extends SubsystemBase {
     }
 
     /**
-     * Stops continuous rotation on both servos.
+     * Stops continuous rotation on both kicker paddle servos.
      *
      * @author superzokabear
      */
@@ -72,9 +76,9 @@ public class Kicker extends SubsystemBase {
     }
 
     /**
-     * Checks whether the kicker is currently in motion.
+     * Checks whether the kicker paddles are currently in motion.
      *
-     * @return true if kicker is currently rotating; false otherwise
+     * @return true if kicker paddles are currently rotating; false otherwise
      */
     public boolean isKicking() {
         return isKicking;
