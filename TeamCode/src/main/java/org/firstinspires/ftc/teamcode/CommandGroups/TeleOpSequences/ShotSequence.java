@@ -21,27 +21,11 @@ public class ShotSequence extends SequentialCommandGroup {
      * @author gbuckholtz
      */
     public ShotSequence() {
-        // Require intake and ramp lift subsystems
-        addRequirements(RobotContainer.intake);
-        addRequirements(RobotContainer.ramplift);
-
-        addCommands(
-                // Raise ramp to position artifact
-                new InstantCommand(() -> RobotContainer.ramplift.Raise()),
-
-                // Wait for ramp to lift
-                new Pause(0.25),
-
-                // Feed artifact into flywheel
-                new InstantCommand(() -> RobotContainer.intake.intakeRunReducedSpeed(true)),
-
-                // Wait for shot completion
-                new Pause(1.90)
-        );
+        this(0.0);
     }
 
     /**
-     * Constructs a ShotSequence with an initial delay before firing.
+     * Constructs a ShotSequence with an optional initial delay before firing.
      *
      * @author gbuckholtz
      *
@@ -50,20 +34,19 @@ public class ShotSequence extends SequentialCommandGroup {
     public ShotSequence(double shotDelay) {
         // Require intake and ramp lift subsystems
         addRequirements(RobotContainer.intake);
-        addRequirements(RobotContainer.ramplift);
+        addRequirements(RobotContainer.kicker);
+
+        // Prepend delay if specified
+        if (shotDelay > 0) {
+            addCommands(new Pause(shotDelay));
+        }
 
         addCommands(
-                // Initial delay
-                new Pause(shotDelay),
-
-                // Raise ramp
-                new InstantCommand(() -> RobotContainer.ramplift.Raise()),
+                // Raise ramp to position artifact
+                new InstantCommand(() -> RobotContainer.kicker.kick()),
 
                 // Wait for ramp to lift
                 new Pause(0.25),
-
-                // Feed artifact into flywheel
-                new InstantCommand(() -> RobotContainer.intake.intakeRunReducedSpeed(true)),
 
                 // Wait for shot completion
                 new Pause(1.90)
@@ -79,7 +62,7 @@ public class ShotSequence extends SequentialCommandGroup {
      */
     @Override
     public void end(boolean interrupted) {
-        RobotContainer.ramplift.Lower();
+        RobotContainer.kicker.stop();
         RobotContainer.intake.intakeStop();
     }
 }

@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.CommandGroups.TeleOpSequences.GhostTeleOp;
 import org.firstinspires.ftc.teamcode.CommandGroups.TeleOpSequences.IntakeSequence;
+import org.firstinspires.ftc.teamcode.CommandGroups.TeleOpSequences.ShotSequence;
 import org.firstinspires.ftc.teamcode.Commands.Drive.ManualDrive;
 import org.firstinspires.ftc.teamcode.Commands.Intake.HuntMode.HuntModeCommand;
 import org.firstinspires.ftc.teamcode.Commands.Intake.ReverseIntakeCommand;
@@ -27,7 +28,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.Sensors.GoalTargeting;
 import org.firstinspires.ftc.teamcode.Subsystems.Sensors.UptakeSensor;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter.Flywheel;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter.HoodTilt;
-import org.firstinspires.ftc.teamcode.Subsystems.Shooter.RampLift;
+import org.firstinspires.ftc.teamcode.Subsystems.Shooter.Kicker;
 import org.firstinspires.ftc.teamcode.Subsystems.Utils.Blinkin;
 import org.firstinspires.ftc.teamcode.Subsystems.DriveTrain;
 import org.firstinspires.ftc.teamcode.Subsystems.Odometry.Gyro;
@@ -69,7 +70,7 @@ public class RobotContainer {
     public static DriveTrain drivesystem;
     public static Odometry odometry;
     public static HoodTilt hoodtilt;
-    public static RampLift ramplift;
+    public static Kicker kicker;
     public static Intake intake;
     public static Flywheel shooter;
     public static LimeLight limeLight;
@@ -139,7 +140,7 @@ public class RobotContainer {
         drivesystem = new DriveTrain();
         odometry = new Odometry();
         hoodtilt = new HoodTilt();
-        ramplift = new RampLift();
+        kicker = new Kicker();
         intake = new Intake();
         shooter = new Flywheel();
         limeLight = new LimeLight();
@@ -164,7 +165,7 @@ public class RobotContainer {
                 AutoFunctions.redVsBlue(new Pose2d(0.0, 0.0, new Rotation2d(Math.toRadians(-90.0)))))));
 
         // (Driver) Shooting Controls: RIGHT_BUMPER executes shooting sequence
-        //driverOp.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenHeld(new ShotSequence());
+        driverOp.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenHeld(new ShotSequence());
 
         // (Driver) Vacuum Mode: Y button toggles vacuum mode on/off
         driverOp.getGamepadButton(GamepadKeys.Button.Y).toggleWhenPressed(new VacuumModeOn(), new VacuumModeOff());
