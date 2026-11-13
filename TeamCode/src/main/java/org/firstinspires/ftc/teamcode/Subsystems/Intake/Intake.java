@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.Subsystems.Intake;
 
 import com.arcrobotics.ftclib.command.SubsystemBase;
-import com.arcrobotics.ftclib.hardware.ServoEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -10,7 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
 /**
- * Subsystem controlling the intake roller mechanism.
+ * Subsystem controlling the intake roller mechanism and continuous rotation flower extractor servos.
  * Uses a closed-loop PIF speed controller with optional agitation mode to prevent artifact jams.
  *
  * @author superzokabear
@@ -20,10 +19,12 @@ public class Intake extends SubsystemBase {
     // Intake motor hardware reference
     private final DcMotorEx intakeMotor;
 
+    // Continuous rotation servos for extracting artifacts from the flower
     private final Servo leftServo;
     private final Servo rightServo;
 
-    private final double SERVO_ON = 1;
+    // Continuous rotation servo position/speed constants (1.0 = full forward rotation, 0.5 = stopped)
+    private final double SERVO_ON = 1.0;
     private final double SERVO_OFF = 0.5;
 
     // Gear reduction and encoder ticks constants
@@ -51,7 +52,7 @@ public class Intake extends SubsystemBase {
 
     /**
      * Initializes the intake subsystem, configures motor direction and zero power behavior,
-     * and resets controller errors and agitation states.
+     * sets up continuous rotation flower extractor servos, and resets controller errors and agitation states.
      *
      * @author superzokabear
      */
@@ -74,24 +75,31 @@ public class Intake extends SubsystemBase {
         AgitatorCount = 0;
         AgitateMode = false;
 
-        //Creates the servos for extracting from the flower
+        // Creates continuous rotation servos for extracting from the flower
         leftServo = RobotContainer.ActiveOpMode.hardwareMap.get(Servo.class, "leftFlowerExtractor");
         rightServo = RobotContainer.ActiveOpMode.hardwareMap.get(Servo.class, "rightFlowerExtractor");
         leftServo.setDirection(Servo.Direction.REVERSE);
     }
 
+    /**
+     * Starts continuous rotation of the flower extractor servos forward to extract artifacts.
+     *
+     * @author christopher
+     */
     public void servoOn() {
-        //Turns servos on
+        // Run continuous rotation servos forward
         leftServo.setPosition(SERVO_ON);
-
         rightServo.setPosition(SERVO_ON);
     }
 
+    /**
+     * Stops continuous rotation of the flower extractor servos.
+     *
+     * @author christopher
+     */
     public void servoOff() {
-        //Turns servos off
-
+        // Stop continuous rotation servos
         leftServo.setPosition(SERVO_OFF);
-
         rightServo.setPosition(SERVO_OFF);
     }
 
@@ -165,7 +173,7 @@ public class Intake extends SubsystemBase {
     }
 
     /**
-     * Runs the intake forward at standard collection speed (90 motor RPS) without agitation.
+     * Runs the intake forward at standard collection speed (50 motor RPS) and starts continuous rotation of the flower extractor servos without agitation.
      *
      * @author superzokabear
      */
@@ -174,7 +182,7 @@ public class Intake extends SubsystemBase {
     }
 
     /**
-     * Runs the intake forward at standard collection speed (90 motor RPS) with optional agitation.
+     * Runs the intake forward at standard collection speed (50 motor RPS) and starts continuous rotation of the flower extractor servos with optional agitation.
      *
      * @author superzokabear
      *
@@ -187,7 +195,7 @@ public class Intake extends SubsystemBase {
     }
 
     /**
-     * Runs the intake forward at reduced speed (75 motor RPS) without agitation.
+     * Runs the intake forward at reduced speed (30 motor RPS) without agitation.
      *
      * @author superzokabear
      */
@@ -196,7 +204,7 @@ public class Intake extends SubsystemBase {
     }
 
     /**
-     * Runs the intake forward at reduced speed (75 motor RPS) with optional agitation.
+     * Runs the intake forward at reduced speed (30 motor RPS) with optional agitation.
      *
      * @author superzokabear
      *
@@ -229,7 +237,7 @@ public class Intake extends SubsystemBase {
     }
 
     /**
-     * Stops the intake motor and resets the PIF controller state.
+     * Stops the intake motor, halts continuous rotation of the flower extractor servos, and resets the PIF controller state.
      *
      * @author superzokabear
      */

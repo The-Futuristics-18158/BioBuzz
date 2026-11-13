@@ -46,7 +46,7 @@ public class IntakeSequence extends SequentialCommandGroup {
     @Override
     public void end(boolean interrupted) {
         // Clean up and stop all actions
-        RobotContainer.ramplift.Lower();
+        RobotContainer.kicker.stop();
         RobotContainer.intake.intakeStop();
         RobotContainer.drivesystem.RobotDrive(0.0, 0.0, 0.0);
     }
