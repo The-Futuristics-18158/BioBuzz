@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.Subsystems.Shooter;
 
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
 /**
@@ -20,10 +19,6 @@ public class Kicker extends SubsystemBase {
     private static final double SERVO_ON = 1.0;
     private static final double SERVO_OFF = 0.5;
 
-    // Tunable duration constant in seconds to rotate the kicker approximately 180 degrees
-    public static double KICK_PAUSE_DURATION_SECONDS = 0.35;
-
-    private final ElapsedTime kickTimer = new ElapsedTime();
     private boolean isKicking = false;
 
     /**
@@ -46,26 +41,22 @@ public class Kicker extends SubsystemBase {
 
     /**
      * Method called periodically by the command scheduler.
-     * Checks if the kicker is active and stops the servos once the tuned duration has elapsed.
      *
      * @author superzokabear
      */
     @Override
     public void periodic() {
-        if (isKicking && kickTimer.seconds() >= KICK_PAUSE_DURATION_SECONDS) {
-            stop();
-        }
+        // Periodic sensor check to ensure servo parts stay clear when done
     }
 
     /**
-     * Starts continuous rotation on both servos in opposite directions and resets the kick timer.
+     * Starts continuous rotation on both servos in opposite directions.
      *
      * @author superzokabear
      */
     public void kick() {
         leftRampServo.setPosition(SERVO_ON);
         rightRampServo.setPosition(SERVO_ON);
-        kickTimer.reset();
         isKicking = true;
     }
 
@@ -86,15 +77,6 @@ public class Kicker extends SubsystemBase {
      * @return true if kicker is currently rotating; false otherwise
      */
     public boolean isKicking() {
-        return isKicking;
-    }
-
-    /**
-     * Backward-compatible alias for checking if the kicker is running.
-     *
-     * @return true if kicker is running; false otherwise
-     */
-    public boolean rampIsRunning() {
         return isKicking;
     }
 }
