@@ -9,8 +9,8 @@
 | Y             | VacuumMode toggle    | toggleWhenPressed |
 | Dpad up       | shotblock.Unblock    | whenPressed       |
 | Dpad down     | shotblock.Block      | whenPressed       |
-| Dpad left     | SetHoodPosition-0.01 | whenPressed       |
-| Dpad right    | SetHoodPosition+0.01 | whenPressed       |
+| Dpad left     | SetGap-0.01          | whenPressed       |
+| Dpad right    | SetGap+0.01          | whenPressed       |
 | Left bumper   | intake and uptake    | whenHeld          |
 | Right bumper  | ShotSequence         | whenHeld          |
 | Left trigger  | ReverseIntake        | whileActiveOnce   |

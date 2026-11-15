@@ -10,9 +10,9 @@ import org.firstinspires.ftc.teamcode.RobotContainer;
 /**
  * Subsystem responsible for calculating robot distance to alliance goals,
  * verifying valid shooting zones, and automatically adjusting the shooter flywheel
- * speed and hood tilt angle.
+ * speed and flywheel gap.
  *
- * @author knutt5
+ * @author knutt5, gbuckholtz
  */
 public class GoalTargeting extends SubsystemBase {
 
@@ -41,9 +41,9 @@ public class GoalTargeting extends SubsystemBase {
 
     /**
      * Method called periodically by the command scheduler to determine distance to the goal
-     * and adjust shooter hood angle and flywheel speed accordingly.
+     * and adjust shooter flywheel gap and flywheel speed accordingly.
      *
-     * @author knutt5
+     * @author knutt5, gbuckholtz
      */
     @Override
     public void periodic() {
@@ -79,8 +79,10 @@ public class GoalTargeting extends SubsystemBase {
             // Display distance to telemetry
             RobotContainer.telemetrySubsystem.addData("distance", TargetDistance, true);
 
-            // Set shooter hood position and flywheel RPM based on distance
-            RobotContainer.hoodtilt.SetHoodPosition(CalculateHoodAngle(TargetDistance));
+            // Set shooter flywheel gap position and flywheel RPM based on distance
+            if (RobotContainer.flywheelGap != null) {
+                RobotContainer.flywheelGap.setGap(CalculateFlywheelGap(TargetDistance));
+            }
             RobotContainer.shooter.SetFlywheelSpeed(CalculateSpeed(TargetDistance));
         }
     }
@@ -179,15 +181,15 @@ public class GoalTargeting extends SubsystemBase {
     }
 
     /**
-     * Calculates the required shooter hood tilt servo position for a given distance to the goal.
+     * Calculates the required shooter flywheel gap servo position for a given distance to the goal.
      *
-     * @author superzokabear
+     * @author superzokabear, gbuckholtz
      *
      * @param distance distance to goal in meters
-     * @return required hood servo position
+     * @return required flywheel gap servo position
      */
-    public double CalculateHoodAngle(double distance) {
-        // Empirically derived quadratic hood position curve
+    public double CalculateFlywheelGap(double distance) {
+        // Empirically derived quadratic gap position curve
         return -0.0096 * distance * distance + 0.0839 * distance - 0.0655;
     }
 

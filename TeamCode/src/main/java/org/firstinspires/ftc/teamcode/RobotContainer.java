@@ -24,10 +24,11 @@ import org.firstinspires.ftc.teamcode.Commands.Intake.VacuumModeOn;
 import org.firstinspires.ftc.teamcode.Commands.UptakeRampControle;
 import org.firstinspires.ftc.teamcode.Subsystems.Cameras.LimeLight;
 import org.firstinspires.ftc.teamcode.Subsystems.Intake.Intake;
+import org.firstinspires.ftc.teamcode.Subsystems.Sensors.BallColorSensor;
 import org.firstinspires.ftc.teamcode.Subsystems.Sensors.GoalTargeting;
 import org.firstinspires.ftc.teamcode.Subsystems.Sensors.UptakeSensor;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter.Flywheel;
-import org.firstinspires.ftc.teamcode.Subsystems.Shooter.HoodTilt;
+import org.firstinspires.ftc.teamcode.Subsystems.Shooter.FlywheelGap;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter.Kicker;
 import org.firstinspires.ftc.teamcode.Subsystems.Utils.Blinkin;
 import org.firstinspires.ftc.teamcode.Subsystems.DriveTrain;
@@ -69,12 +70,13 @@ public class RobotContainer {
     public static PinpointOdometry odometryPod;
     public static DriveTrain drivesystem;
     public static Odometry odometry;
-    public static HoodTilt hoodtilt;
+    public static FlywheelGap flywheelGap;
     public static Kicker kicker;
     public static Intake intake;
     public static Flywheel shooter;
     public static LimeLight limeLight;
     public static UptakeSensor uptakeSensor;
+    public static BallColorSensor ballSensor;
     public static GoalTargeting targeting;
     public static Blinkin ledsubsystem;
 
@@ -139,12 +141,13 @@ public class RobotContainer {
         odometryPod = new PinpointOdometry();
         drivesystem = new DriveTrain();
         odometry = new Odometry();
-        hoodtilt = new HoodTilt();
+        flywheelGap = new FlywheelGap();
         kicker = new Kicker();
         intake = new Intake();
         shooter = new Flywheel();
         limeLight = new LimeLight();
         uptakeSensor = new UptakeSensor();
+        ballSensor = new BallColorSensor();
         targeting = new GoalTargeting();
     }
 
@@ -187,11 +190,11 @@ public class RobotContainer {
         // (Driver) Ghost TeleOp: X button runs autonomous routine
         driverOp.getGamepadButton(GamepadKeys.Button.X).whenHeld(new GhostTeleOp());
 
-        // (Driver) Hood Manual Trim: DPAD LEFT / RIGHT increments hood angle
+        // (Driver) Flywheel Gap Manual Trim: DPAD LEFT / RIGHT adjusts wheel gap
         driverOp.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(
-                new InstantCommand(() -> hoodtilt.SetHoodPosition(hoodtilt.GetHoodPosition() - 0.01)));
+                new InstantCommand(() -> flywheelGap.setGap(flywheelGap.getGap() - 0.01)));
         driverOp.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(
-                new InstantCommand(() -> hoodtilt.SetHoodPosition(hoodtilt.GetHoodPosition() + 0.01)));
+                new InstantCommand(() -> flywheelGap.setGap(flywheelGap.getGap() + 0.01)));
 
         // (Operator) Auto Targeting: START button toggles automated targeting
         toolOp.getGamepadButton(GamepadKeys.Button.START).whenPressed(

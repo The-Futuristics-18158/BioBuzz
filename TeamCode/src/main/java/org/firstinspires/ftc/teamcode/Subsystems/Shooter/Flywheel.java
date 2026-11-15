@@ -152,4 +152,24 @@ public class Flywheel extends SubsystemBase {
         // Return target speed
         return TargetSpeed;
     }
+
+    /**
+     * Checks if the flywheel has reached its target speed within a default tolerance of 100 RPM.
+     *
+     * @return true if target speed > 0 and current speed is within tolerance; false otherwise
+     */
+    public boolean isAtTargetSpeed() {
+        return isAtTargetSpeed(100.0);
+    }
+
+    /**
+     * Checks if the flywheel has reached its target speed within a specified RPM tolerance.
+     *
+     * @param toleranceRPM maximum allowable difference between target and current speed in RPM
+     * @return true if target speed > 0 and current speed is within tolerance; false otherwise
+     */
+    public boolean isAtTargetSpeed(double toleranceRPM) {
+        if (TargetSpeed <= 0.0) return false;
+        return Math.abs(TargetSpeed - CurrentSpeed) <= toleranceRPM;
+    }
 }
