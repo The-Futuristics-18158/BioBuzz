@@ -80,9 +80,7 @@ public class GoalTargeting extends SubsystemBase {
             RobotContainer.telemetrySubsystem.addData("distance", TargetDistance, true);
 
             // Set shooter flywheel gap position and flywheel RPM based on distance
-            if (RobotContainer.flywheelGap != null) {
-                RobotContainer.flywheelGap.setGap(CalculateFlywheelGap(TargetDistance));
-            }
+            RobotContainer.flywheelGap.setGap(CalculateFlywheelGap(TargetDistance));
             RobotContainer.shooter.SetFlywheelSpeed(CalculateSpeed(TargetDistance));
         }
     }

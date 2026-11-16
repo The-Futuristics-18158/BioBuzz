@@ -69,12 +69,10 @@ public class WaitForSpinup extends CommandBase {
      */
     @Override
     public void execute() {
-        if (RobotContainer.telemetrySubsystem != null && RobotContainer.shooter != null) {
-            RobotContainer.telemetrySubsystem.addData("Spinup Wait (s)",
-                    String.format(java.util.Locale.US, "%.2f", timer.seconds()));
-            RobotContainer.telemetrySubsystem.addData("Flywheel At Speed",
-                    RobotContainer.shooter.isAtTargetSpeed(toleranceRPM));
-        }
+        RobotContainer.telemetrySubsystem.addData("Spinup Wait (s)",
+                String.format(java.util.Locale.US, "%.2f", timer.seconds()));
+        RobotContainer.telemetrySubsystem.addData("Flywheel At Speed",
+                RobotContainer.shooter.isAtTargetSpeed(toleranceRPM));
     }
 
     /**
@@ -86,8 +84,6 @@ public class WaitForSpinup extends CommandBase {
      */
     @Override
     public boolean isFinished() {
-        if (RobotContainer.shooter == null) return true;
-
         // Ready if flywheel is at target speed or timeout elapsed
         return RobotContainer.shooter.isAtTargetSpeed(toleranceRPM) || timer.seconds() >= maxTimeoutSeconds;
     }

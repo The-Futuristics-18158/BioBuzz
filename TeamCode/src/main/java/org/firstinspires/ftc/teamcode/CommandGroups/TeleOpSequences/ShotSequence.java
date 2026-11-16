@@ -53,13 +53,10 @@ public class ShotSequence extends SequentialCommandGroup {
      * @param shotDelay delay in seconds before commencing the shot sequence
      */
     public ShotSequence(double shotDelay) {
-        // Declare required subsystems
         addRequirements(RobotContainer.shooter);
         addRequirements(RobotContainer.flywheelGap);
         addRequirements(RobotContainer.kicker);
-        if (RobotContainer.intake != null) {
-            addRequirements(RobotContainer.intake);
-        }
+        addRequirements(RobotContainer.intake);
 
         // Optional pre-shot delay (e.g., waiting for robot alignment or drivetrain settling)
         if (shotDelay > 0) {
@@ -72,23 +69,17 @@ public class ShotSequence extends SequentialCommandGroup {
                     // Check top color sensor for ball presence and type.
                     // Fail-Safe: Default to NECTAR (the larger ball / wider gap) to prevent
                     // potential mechanical jamming/damage if sensor is unreachable or uncertain.
-                    BallColorSensor.BallType detectedType = (RobotContainer.ballSensor != null)
-                            ? RobotContainer.ballSensor.getBallType()
-                            : BallColorSensor.BallType.NECTAR;
+                    BallColorSensor.BallType detectedType = RobotContainer.ballSensor.getBallType();
 
                     BallColorSensor.BallType ballType = (detectedType == BallColorSensor.BallType.POLLEN)
                             ? BallColorSensor.BallType.POLLEN
                             : BallColorSensor.BallType.NECTAR;
 
                     // Set top servo flywheel gap: narrower gap for Pollen, wider gap for Nectar
-                    if (RobotContainer.flywheelGap != null) {
-                        RobotContainer.flywheelGap.setGapForBall(ballType);
-                    }
+                    RobotContainer.flywheelGap.setGapForBall(ballType);
 
                     // Spin up flywheels to shooting RPM
-                    if (RobotContainer.shooter != null) {
-                        RobotContainer.shooter.SetFlywheelSpeed(DEFAULT_SHOOTING_RPM);
-                    }
+                    RobotContainer.shooter.SetFlywheelSpeed(DEFAULT_SHOOTING_RPM);
                 }),
 
                 // Step 2: Wait for flywheel to reach target speed (with fail-safe timeout)
@@ -98,11 +89,7 @@ public class ShotSequence extends SequentialCommandGroup {
                 new Pause(SERVO_SETTLE_SECONDS),
 
                 // Step 4: Advance kickers to propel the ball into the flywheels
-                new InstantCommand(() -> {
-                    if (RobotContainer.kicker != null) {
-                        RobotContainer.kicker.advanceToShoot();
-                    }
-                }),
+                new InstantCommand(() -> RobotContainer.kicker.advanceToShoot()),
 
                 // Step 5: Allow paddles sufficient time to complete the kick stroke
                 new Pause(KICK_PROPEL_SECONDS),
@@ -122,17 +109,9 @@ public class ShotSequence extends SequentialCommandGroup {
      */
     @Override
     public void end(boolean interrupted) {
-        if (RobotContainer.kicker != null) {
-            RobotContainer.kicker.stop();
-        }
-        if (RobotContainer.shooter != null) {
-            RobotContainer.shooter.SetFlywheelSpeed(0.0);
-        }
-        if (RobotContainer.flywheelGap != null) {
-            RobotContainer.flywheelGap.setGap(FlywheelGap.GAP_DEFAULT);
-        }
-        if (RobotContainer.intake != null) {
-            RobotContainer.intake.intakeStop();
-        }
+        RobotContainer.kicker.stop();
+        RobotContainer.shooter.SetFlywheelSpeed(0.0);
+        RobotContainer.flywheelGap.setGap(FlywheelGap.GAP_DEFAULT);
+        RobotContainer.intake.intakeStop();
     }
 }
