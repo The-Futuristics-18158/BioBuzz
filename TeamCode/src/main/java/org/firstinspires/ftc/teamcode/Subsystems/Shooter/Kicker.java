@@ -20,9 +20,9 @@ import java.util.Locale;
  * two REV Color Sensor V3 devices operate in <b>Distance Mode</b> on either side of the kicker.
  * <ul>
  *   <li>When a fin is blocking or entering the feed path, the distance reading drops below
- *       {@link #FIN_BLOCKED_DISTANCE_THRESHOLD_CM}.</li>
+ *       {@link #FIN_BLOCKED_DISTANCE_THRESHOLD_MM}.</li>
  *   <li>When the fin rotates fully out of the feed corridor, the measured distance exceeds
- *       {@link #FIN_CLEAR_DISTANCE_THRESHOLD_CM}, signaling that the path in is clear.</li>
+ *       {@link #FIN_CLEAR_DISTANCE_THRESHOLD_MM}, signaling that the path in is clear.</li>
  * </ul>
  *
  * @author superzokabear, gbuckholtz
@@ -51,15 +51,15 @@ public class Kicker extends SubsystemBase {
     private static final double SERVO_ON = 1.0;
     private static final double SERVO_OFF = 0.5;
 
-    // Distance calibration thresholds (in centimeters)
+    // Distance calibration thresholds (in millimeters)
     // Distance beyond which the fin is rotated away and the feed path is unobstructed
-    public static final double FIN_CLEAR_DISTANCE_THRESHOLD_CM = 6.0;
+    public static final double FIN_CLEAR_DISTANCE_THRESHOLD_MM = 60.0;
     // Distance when the fin passes directly in front of the side sensor
-    public static final double FIN_BLOCKED_DISTANCE_THRESHOLD_CM = 3.5;
+    public static final double FIN_BLOCKED_DISTANCE_THRESHOLD_MM = 35.0;
 
     private KickerState currentState = KickerState.STOPPED;
-    private double lastLeftDistanceCm = 999.0;
-    private double lastRightDistanceCm = 999.0;
+    private double lastLeftDistanceMm = 999.0;
+    private double lastRightDistanceMm = 999.0;
 
     /**
      * Initializes the kicker subsystem, configures the continuous rotation paddle servos,
@@ -133,15 +133,15 @@ public class Kicker extends SubsystemBase {
         if (RobotContainer.telemetrySubsystem != null) {
             RobotContainer.telemetrySubsystem.addData("Kicker State", currentState.name());
             RobotContainer.telemetrySubsystem.addData("Feed Clear", isFeedPathClear());
-            RobotContainer.telemetrySubsystem.addData("Left Fin (cm)",
-                    String.format(Locale.US, "%.1f", lastLeftDistanceCm));
-            RobotContainer.telemetrySubsystem.addData("Right Fin (cm)",
-                    String.format(Locale.US, "%.1f", lastRightDistanceCm));
+            RobotContainer.telemetrySubsystem.addData("Left Fin (mm)",
+                    String.format(Locale.US, "%.1f", lastLeftDistanceMm));
+            RobotContainer.telemetrySubsystem.addData("Right Fin (mm)",
+                    String.format(Locale.US, "%.1f", lastRightDistanceMm));
         }
     }
 
     /**
-     * Polls the two side sensors to read current distance in centimeters.
+     * Polls the two side sensors to read current distance in millimeters.
      */
     private void updateSensorReadings() {
         if (!areSensorsInitialized) {
@@ -151,10 +151,10 @@ public class Kicker extends SubsystemBase {
 
         try {
             if (leftFinSensor != null) {
-                lastLeftDistanceCm = leftFinSensor.getDistance(DistanceUnit.CM);
+                lastLeftDistanceMm = leftFinSensor.getDistance(DistanceUnit.MM);
             }
             if (rightFinSensor != null) {
-                lastRightDistanceCm = rightFinSensor.getDistance(DistanceUnit.CM);
+                lastRightDistanceMm = rightFinSensor.getDistance(DistanceUnit.MM);
             }
         } catch (Exception e) {
             // Gracefully catch intermittent I2C communication exceptions
@@ -167,7 +167,7 @@ public class Kicker extends SubsystemBase {
      * @return true if left sensor distance is greater than the clear threshold; false if fin is detected
      */
     public boolean isLeftFinClear() {
-        return lastLeftDistanceCm >= FIN_CLEAR_DISTANCE_THRESHOLD_CM;
+        return lastLeftDistanceMm >= FIN_CLEAR_DISTANCE_THRESHOLD_MM;
     }
 
     /**
@@ -176,7 +176,7 @@ public class Kicker extends SubsystemBase {
      * @return true if right sensor distance is greater than the clear threshold; false if fin is detected
      */
     public boolean isRightFinClear() {
-        return lastRightDistanceCm >= FIN_CLEAR_DISTANCE_THRESHOLD_CM;
+        return lastRightDistanceMm >= FIN_CLEAR_DISTANCE_THRESHOLD_MM;
     }
 
     /**
@@ -254,20 +254,20 @@ public class Kicker extends SubsystemBase {
     }
 
     /**
-     * Gets the latest measured distance for the left fin sensor in centimeters.
+     * Gets the latest measured distance for the left fin sensor in millimeters.
      *
-     * @return distance in centimeters
+     * @return distance in millimeters
      */
-    public double getLeftDistanceCm() {
-        return lastLeftDistanceCm;
+    public double getLeftDistanceMm() {
+        return lastLeftDistanceMm;
     }
 
     /**
-     * Gets the latest measured distance for the right fin sensor in centimeters.
+     * Gets the latest measured distance for the right fin sensor in millimeters.
      *
-     * @return distance in centimeters
+     * @return distance in millimeters
      */
-    public double getRightDistanceCm() {
-        return lastRightDistanceCm;
+    public double getRightDistanceMm() {
+        return lastRightDistanceMm;
     }
 }

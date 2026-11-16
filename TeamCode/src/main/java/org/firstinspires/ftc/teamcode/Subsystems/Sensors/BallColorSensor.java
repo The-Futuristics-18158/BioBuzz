@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.RobotContainer;
  * In this subsystem:
  * <ul>
  *   <li><b>Proximity / Distance:</b> Used to quickly check whether a ball is seated in the chamber
- *       (e.g., within 5-6 cm).</li>
+ *       (e.g., within 50 mm).</li>
  *   <li><b>Color Mode:</b> Analyzes the reflected light channels or converts RGB to HSV
  *       (Hue, Saturation, Value) to classify the game element (e.g. Nectar vs. Pollen).
  *       Using HSV Hue angles makes detection resilient to varying arena lighting.</li>
@@ -42,14 +42,13 @@ public class BallColorSensor extends SubsystemBase {
     private RevColorSensorV3 topColorSensor;
     private boolean isSensorInitialized = false;
 
-    // Detection thresholds (in centimeters)
-    // Distance below which a ball is considered physically present under the sensor
-    public static final double BALL_PRESENT_DISTANCE_THRESHOLD_CM = 5.0;
+    // Distance below which a ball is considered physically present under the sensor (in millimeters)
+    public static final double BALL_PRESENT_DISTANCE_THRESHOLD_MM = 50.0;
 
     // Cached state from periodic updates
     private BallType currentBallType = BallType.NONE;
     private boolean ballPresent = false;
-    private double lastDistanceCm = 999.0;
+    private double lastDistanceMm = 999.0;
     private final float[] hsvValues = new float[3];
 
     /**
@@ -100,9 +99,9 @@ public class BallColorSensor extends SubsystemBase {
         }
 
         try {
-            // 1. Measure distance to determine presence
-            lastDistanceCm = topColorSensor.getDistance(DistanceUnit.CM);
-            ballPresent = (lastDistanceCm < BALL_PRESENT_DISTANCE_THRESHOLD_CM);
+            // 1. Measure distance in mm to determine presence
+            lastDistanceMm = topColorSensor.getDistance(DistanceUnit.MM);
+            ballPresent = (lastDistanceMm < BALL_PRESENT_DISTANCE_THRESHOLD_MM);
 
             if (!ballPresent) {
                 currentBallType = BallType.NONE;
@@ -115,8 +114,8 @@ public class BallColorSensor extends SubsystemBase {
             if (RobotContainer.telemetrySubsystem != null) {
                 RobotContainer.telemetrySubsystem.addData("Ball Present", ballPresent);
                 RobotContainer.telemetrySubsystem.addData("Ball Type", currentBallType.name());
-                RobotContainer.telemetrySubsystem.addData("Ball Dist (cm)",
-                        String.format(java.util.Locale.US, "%.2f", lastDistanceCm));
+                RobotContainer.telemetrySubsystem.addData("Ball Dist (mm)",
+                        String.format(java.util.Locale.US, "%.1f", lastDistanceMm));
             }
         } catch (Exception e) {
             // Catch I2C communication dropouts gracefully
@@ -189,11 +188,11 @@ public class BallColorSensor extends SubsystemBase {
     }
 
     /**
-     * Retrieves the most recent distance reading in centimeters.
+     * Retrieves the most recent distance reading in millimeters.
      *
-     * @return distance in centimeters
+     * @return distance in millimeters
      */
-    public double getDistanceCm() {
-        return lastDistanceCm;
+    public double getDistanceMm() {
+        return lastDistanceMm;
     }
 }
