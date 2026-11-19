@@ -20,8 +20,8 @@ public class Intake extends SubsystemBase {
     private final DcMotorEx intakeMotor;
 
     // Continuous rotation servos for extracting artifacts from the flower
-    private final Servo leftServo;
-    private final Servo rightServo;
+    private final Servo leftFlowerServo;
+    private final Servo rightFlowerServo;
 
     // Continuous rotation servo position/speed constants (1.0 = full forward rotation, 0.5 = stopped)
     private final double SERVO_ON = 1.0;
@@ -76,9 +76,9 @@ public class Intake extends SubsystemBase {
         AgitateMode = false;
 
         // Creates continuous rotation servos for extracting from the flower
-        leftServo = RobotContainer.ActiveOpMode.hardwareMap.get(Servo.class, "leftFlowerExtractor");
-        rightServo = RobotContainer.ActiveOpMode.hardwareMap.get(Servo.class, "rightFlowerExtractor");
-        leftServo.setDirection(Servo.Direction.REVERSE);
+        leftFlowerServo = RobotContainer.ActiveOpMode.hardwareMap.get(Servo.class, "leftFlowerServo");
+        rightFlowerServo = RobotContainer.ActiveOpMode.hardwareMap.get(Servo.class, "rightFlowerServo");
+        leftFlowerServo.setDirection(Servo.Direction.REVERSE);
     }
 
     /**
@@ -88,8 +88,8 @@ public class Intake extends SubsystemBase {
      */
     public void servoOn() {
         // Run continuous rotation servos forward
-        leftServo.setPosition(SERVO_ON);
-        rightServo.setPosition(SERVO_ON);
+        leftFlowerServo.setPosition(SERVO_ON);
+        rightFlowerServo.setPosition(SERVO_ON);
     }
 
     /**
@@ -99,8 +99,8 @@ public class Intake extends SubsystemBase {
      */
     public void servoOff() {
         // Stop continuous rotation servos
-        leftServo.setPosition(SERVO_OFF);
-        rightServo.setPosition(SERVO_OFF);
+        leftFlowerServo.setPosition(SERVO_OFF);
+        rightFlowerServo.setPosition(SERVO_OFF);
     }
 
     /**

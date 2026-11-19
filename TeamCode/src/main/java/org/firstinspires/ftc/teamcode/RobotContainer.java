@@ -69,7 +69,7 @@ public class RobotContainer {
     public static PinpointOdometry odometryPod;
     public static DriveTrain drivesystem;
     public static Odometry odometry;
-    public static InniOutti hoodtilt;
+    public static InniOutti inniOutti;
     public static Kicker kicker;
     public static Intake intake;
     public static Flywheel shooter;
@@ -139,7 +139,7 @@ public class RobotContainer {
         odometryPod = new PinpointOdometry();
         drivesystem = new DriveTrain();
         odometry = new Odometry();
-        hoodtilt = new InniOutti();
+        inniOutti = new InniOutti();
         kicker = new Kicker();
         intake = new Intake();
         shooter = new Flywheel();

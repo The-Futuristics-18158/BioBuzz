@@ -1,8 +1,13 @@
 package org.firstinspires.ftc.teamcode.Subsystems.Shooter;
 
 import com.arcrobotics.ftclib.command.SubsystemBase;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
 /**
@@ -13,8 +18,14 @@ import org.firstinspires.ftc.teamcode.RobotContainer;
 public class Kicker extends SubsystemBase {
 
     // Kicker servo hardware
-    private final Servo leftRampServo;
-    private final Servo rightRampServo;
+    private final Servo leftKickerServo;
+    private final Servo rightKickerServo;
+
+    private ColorSensor leftKickerSensor;
+    private ColorSensor rightKickerSensor;
+    private DistanceSensor uptakeSensor_DistanceSensor;
+
+
 
     // Continuous servo power: 1.0 = forward/full speed, 0.5 = stopped
     private static final double SERVO_ON = 1.0;
@@ -26,6 +37,12 @@ public class Kicker extends SubsystemBase {
     private final ElapsedTime kickTimer = new ElapsedTime();
     private boolean isKicking = false;
 
+    private double leftKickerDistance;
+    private double rightKickerDistance;
+    private double blockedDistance=35.0;//in mm
+    private boolean leftKickerParked;
+    private boolean rightKickerParked;
+
     /**
      * Initializes the kicker subsystem and configures continuous servos to run in opposite directions.
      *
@@ -33,12 +50,17 @@ public class Kicker extends SubsystemBase {
      */
     public Kicker() {
         // Retrieve kicker servos from the active OpMode's hardware map
-        leftRampServo = RobotContainer.ActiveOpMode.hardwareMap.get(Servo.class, "leftKickerServo");
-        rightRampServo = RobotContainer.ActiveOpMode.hardwareMap.get(Servo.class, "rightKickerServo");
+        leftKickerServo = RobotContainer.ActiveOpMode.hardwareMap.get(Servo.class, "leftKickerServo");
+        rightKickerServo = RobotContainer.ActiveOpMode.hardwareMap.get(Servo.class, "rightKickerServo");
 
+        leftKickerSensor = RobotContainer.ActiveOpMode.hardwareMap.get(ColorSensor.class, "leftKickerSensor");
+        rightKickerSensor = RobotContainer.ActiveOpMode.hardwareMap.get(ColorSensor.class, "rightKickerSensor");
         // Servos run in opposite directions
-        leftRampServo.setDirection(Servo.Direction.FORWARD);
-        rightRampServo.setDirection(Servo.Direction.REVERSE);
+        leftKickerServo.setDirection(Servo.Direction.FORWARD);
+        rightKickerServo.setDirection(Servo.Direction.REVERSE);
+
+        ((NormalizedColorSensor) leftKickerSensor).setGain(1);
+        ((NormalizedColorSensor) rightKickerSensor).setGain(1);
 
         // Set initial state to stopped
         stop();
@@ -52,9 +74,8 @@ public class Kicker extends SubsystemBase {
      */
     @Override
     public void periodic() {
-        if (isKicking && kickTimer.seconds() >= KICK_PAUSE_DURATION_SECONDS) {
-            stop();
-        }
+        leftKickerDistance=((DistanceSensor) leftKickerSensor).getDistance(DistanceUnit.MM);
+        rightKickerDistance=((DistanceSensor) rightKickerSensor).getDistance(DistanceUnit.MM);
     }
 
     /**
@@ -63,10 +84,29 @@ public class Kicker extends SubsystemBase {
      * @author superzokabear
      */
     public void kick() {
-        leftRampServo.setPosition(SERVO_ON);
-        rightRampServo.setPosition(SERVO_ON);
+        leftKickerServo.setPosition(SERVO_ON);
+        rightKickerServo.setPosition(SERVO_ON);
 //        kickTimer.reset();
 //        isKicking = true;
+    }
+
+    //Determines if the kickers are in the right position
+    public boolean isLeftKickerParked() {
+        leftKickerParked=false;
+
+        if(leftKickerDistance<blockedDistance) {
+            leftKickerParked=true;
+        }
+        return leftKickerParked;
+    }
+
+    public boolean isRightKickerParked() {
+        rightKickerParked=false;
+
+        if(rightKickerDistance<blockedDistance) {
+            rightKickerParked=true;
+        }
+        return rightKickerParked;
     }
 
     /**
@@ -75,8 +115,8 @@ public class Kicker extends SubsystemBase {
      * @author superzokabear
      */
     public void stop() {
-        leftRampServo.setPosition(SERVO_OFF);
-        rightRampServo.setPosition(SERVO_OFF);
+        leftKickerServo.setPosition(SERVO_OFF);
+        rightKickerServo.setPosition(SERVO_OFF);
         isKicking = false;
     }
 

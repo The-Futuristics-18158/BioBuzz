@@ -21,9 +21,9 @@ public class InniOutti extends SubsystemBase {
     private final double SAFE_POSITION=0.4;
     private double target_gap;
 
-    private final int YELLOW=1;
-    private final int RED=2;
-    private final int BLUE=3;
+    public static final int YELLOW=1;
+    public static final int RED=2;
+    public static final int BLUE=3;
 
     // Current requested hood servo position
     public static double hoodPosition;
@@ -33,6 +33,11 @@ public class InniOutti extends SubsystemBase {
     // Servo movement limits
     public final double maxAngle = 0.1; // Maximum allowable angle position is 0.1
     public final double minAngle = 0.0; // Minimum allowable angle position is 0.0
+
+    public final double pollenAngle=0.75;
+    public final double nectarAngle=0;
+
+    private int finalColour=BLUE;
 
     /**
      * Initializes the shooter hood tilt subsystem, configures servo direction,
@@ -51,20 +56,21 @@ public class InniOutti extends SubsystemBase {
 
     }
 
-    public setBallGap() {
-
-    }
+//    public setBallGap() {
+//
+//    }
 
     private int getColour() {
         int ballRedness;
         int ballBlueness;
         int ballGreenness;
 
-        int finalColour=BLUE;
-        telemetry.addData("Ball Uptake Alphaness", uptakeSensor.alpha());
-        telemetry.addData("Ball Uptake Redness", uptakeSensor.red());
-        telemetry.addData("Ball Uptake Greenness", uptakeSensor.green());
-        telemetry.addData("Ball Uptake Blueness", uptakeSensor.blue());
+
+        RobotContainer.telemetrySubsystem.addData("Ball Uptake Alphaness", uptakeSensor.alpha());
+        RobotContainer.telemetrySubsystem.addData("Ball Uptake Redness", uptakeSensor.red());
+        RobotContainer.telemetrySubsystem.addData("Ball Uptake Greenness", uptakeSensor.green());
+        RobotContainer.telemetrySubsystem.addData("Ball Uptake Blueness", uptakeSensor.blue());
+
 
         ballRedness=uptakeSensor.red();
         ballBlueness=uptakeSensor.blue();
@@ -80,7 +86,7 @@ public class InniOutti extends SubsystemBase {
             if(ballBlueness>220) {
                 finalColour=BLUE;
             } else {
-                if(ballGreenness>170) {
+                if(ballGreenness>90) {
                     finalColour=YELLOW;
                 } else {
                     finalColour=RED;
@@ -104,6 +110,10 @@ public class InniOutti extends SubsystemBase {
         return ballHere;
     }
 
+    public int getCurrentColour() {
+        return finalColour;
+    }
+
     /**
      * Method called periodically by the command scheduler to constrain and apply hood tilt servo positions.
      *
@@ -111,6 +121,13 @@ public class InniOutti extends SubsystemBase {
      */
     @Override
     public void periodic() {
+            getColour();
+            if(finalColour==BLUE || finalColour==RED) {
+                inniOuttiServo.setPosition(nectarAngle);
+            }
 
+            if(finalColour==YELLOW) {
+                inniOuttiServo.setPosition(pollenAngle);
+            }
         }
     }
