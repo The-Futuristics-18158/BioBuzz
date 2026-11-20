@@ -21,6 +21,7 @@ import org.firstinspires.ftc.teamcode.Commands.Intake.ReverseIntakeCommand;
 import org.firstinspires.ftc.teamcode.Commands.Intake.IntakeCommand;
 import org.firstinspires.ftc.teamcode.Commands.Intake.VacuumModeOff;
 import org.firstinspires.ftc.teamcode.Commands.Intake.VacuumModeOn;
+import org.firstinspires.ftc.teamcode.Commands.Shoot.Kick;
 import org.firstinspires.ftc.teamcode.Commands.UptakeRampControle;
 import org.firstinspires.ftc.teamcode.Subsystems.Cameras.LimeLight;
 import org.firstinspires.ftc.teamcode.Subsystems.Intake.Intake;
@@ -185,7 +186,7 @@ public class RobotContainer {
         driverOp.getGamepadButton(GamepadKeys.Button.A).whenHeld(new HuntModeCommand());
 
         // (Driver) Ghost TeleOp: X button runs autonomous routine
-        driverOp.getGamepadButton(GamepadKeys.Button.X).whenHeld(new GhostTeleOp());
+        driverOp.getGamepadButton(GamepadKeys.Button.X).whenHeld(new Kick());
 
         // (Driver) Hood Manual Trim: DPAD LEFT / RIGHT increments hood angle
 //        driverOp.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(

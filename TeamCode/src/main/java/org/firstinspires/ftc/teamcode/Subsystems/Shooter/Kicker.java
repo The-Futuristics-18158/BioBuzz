@@ -42,6 +42,7 @@ public class Kicker extends SubsystemBase {
     private double blockedDistance=35.0;//in mm
     private boolean leftKickerParked;
     private boolean rightKickerParked;
+    private boolean areKickersParked;
 
     /**
      * Initializes the kicker subsystem and configures continuous servos to run in opposite directions.
@@ -63,7 +64,7 @@ public class Kicker extends SubsystemBase {
         ((NormalizedColorSensor) rightKickerSensor).setGain(1);
 
         // Set initial state to stopped
-        stop();
+        //stop();
     }
 
     /**
@@ -76,6 +77,11 @@ public class Kicker extends SubsystemBase {
     public void periodic() {
         leftKickerDistance=((DistanceSensor) leftKickerSensor).getDistance(DistanceUnit.MM);
         rightKickerDistance=((DistanceSensor) rightKickerSensor).getDistance(DistanceUnit.MM);
+        RobotContainer.telemetrySubsystem.addData("Left Kicker Distance",leftKickerDistance);
+        RobotContainer.telemetrySubsystem.addData("Right Kicker Distance",rightKickerDistance);
+        isLeftKickerParked();
+        isRightKickerParked();
+        parkKickers();
     }
 
     /**
@@ -86,13 +92,32 @@ public class Kicker extends SubsystemBase {
     public void kick() {
         leftKickerServo.setPosition(SERVO_ON);
         rightKickerServo.setPosition(SERVO_ON);
-//        kickTimer.reset();
-//        isKicking = true;
+        isKicking = true;
+        leftKickerParked=false;
+        rightKickerParked=false;
+
+
+    }
+
+    public void parkKickers() {
+        if(!isKicking) {
+            if(!leftKickerParked) {
+                leftKickerServo.setPosition(SERVO_ON);
+            } else {
+                leftKickerServo.setPosition(SERVO_OFF);
+            }
+
+            if(!rightKickerParked) {
+                rightKickerServo.setPosition(SERVO_ON);
+            } else {
+                rightKickerServo.setPosition(SERVO_OFF);
+            }
+        }
+
     }
 
     //Determines if the kickers are in the right position
     public boolean isLeftKickerParked() {
-        leftKickerParked=false;
 
         if(leftKickerDistance<blockedDistance) {
             leftKickerParked=true;
@@ -101,7 +126,6 @@ public class Kicker extends SubsystemBase {
     }
 
     public boolean isRightKickerParked() {
-        rightKickerParked=false;
 
         if(rightKickerDistance<blockedDistance) {
             rightKickerParked=true;
@@ -109,15 +133,24 @@ public class Kicker extends SubsystemBase {
         return rightKickerParked;
     }
 
+    public boolean areKickersParked() {
+        if(leftKickerParked && rightKickerParked) {
+            areKickersParked=true;
+        } else {
+            areKickersParked=false;
+        }
+        return areKickersParked;
+    }
+
+
+
     /**
      * Stops continuous rotation on both servos.
      *
      * @author superzokabear
      */
     public void stop() {
-        leftKickerServo.setPosition(SERVO_OFF);
-        rightKickerServo.setPosition(SERVO_OFF);
-        isKicking = false;
+        isKicking=false;
     }
 
     /**
