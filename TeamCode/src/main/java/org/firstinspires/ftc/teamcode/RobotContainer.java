@@ -30,6 +30,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.Sensors.UptakeSensor;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter.Flywheel;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter.InniOutti;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter.Kicker;
+import org.firstinspires.ftc.teamcode.Subsystems.Shooter.SimplifiedFlywheel;
 import org.firstinspires.ftc.teamcode.Subsystems.Utils.Blinkin;
 import org.firstinspires.ftc.teamcode.Subsystems.DriveTrain;
 import org.firstinspires.ftc.teamcode.Subsystems.Odometry.Gyro;
@@ -73,7 +74,7 @@ public class RobotContainer {
     public static InniOutti inniOutti;
     public static Kicker kicker;
     public static Intake intake;
-    public static Flywheel shooter;
+    public static SimplifiedFlywheel shooter;
     public static LimeLight limeLight;
     public static UptakeSensor uptakeSensor;
     public static GoalTargeting targeting;
@@ -143,7 +144,7 @@ public class RobotContainer {
         inniOutti = new InniOutti();
         kicker = new Kicker();
         intake = new Intake();
-        shooter = new Flywheel();
+        shooter = new SimplifiedFlywheel();
         limeLight = new LimeLight();
         uptakeSensor = new UptakeSensor();
         targeting = new GoalTargeting();
@@ -173,7 +174,7 @@ public class RobotContainer {
 
         // (Driver) Intake Systems: LEFT_BUMPER runs intake and uptake control in parallel
         driverOp.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenHeld(
-                new ParallelCommandGroup(new IntakeCommand(), new UptakeRampControle()));
+                new IntakeCommand());
 
         // (Driver) Reverse Intake: LEFT_TRIGGER reverses intake
         Trigger leftTrigger = new Trigger(() -> (RobotContainer.ActiveOpMode.gamepad1.left_trigger > 0.5));
@@ -200,6 +201,14 @@ public class RobotContainer {
 
         // Set Limelight to AprilTag pipeline (0)
         limeLight.SetPipelineMode(0);
+
+        toolOp.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(
+                new InstantCommand(() ->shooter.inkFlywheelSpeed(50.0)
+        ));
+
+        toolOp.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(
+                new InstantCommand(() ->shooter.decFlywheelSpeed(50.0)
+                ));
     }
 
     /**

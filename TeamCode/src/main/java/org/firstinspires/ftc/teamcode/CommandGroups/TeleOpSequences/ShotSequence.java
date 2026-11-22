@@ -35,6 +35,7 @@ public class ShotSequence extends SequentialCommandGroup {
         // Require intake and ramp lift subsystems
         addRequirements(RobotContainer.intake);
         addRequirements(RobotContainer.kicker);
+        addRequirements(RobotContainer.shooter);
 
         // Prepend delay if specified
         if (shotDelay > 0) {
@@ -42,14 +43,17 @@ public class ShotSequence extends SequentialCommandGroup {
         }
 
         addCommands(
-                // Raise ramp to position artifact
-                new InstantCommand(() -> RobotContainer.kicker.kick()),
+                new InstantCommand(() -> RobotContainer.shooter.SetFlywheelSpeed(1500)), //not tuned, looks to be right
 
-                // Wait for ramp to lift
-                new Pause(0.25),
+               new InstantCommand(() -> RobotContainer.intake.intakeStop()),
+
+                // Raise ramp to position artifact
+                new InstantCommand(() -> RobotContainer.kicker.kick())
 
                 // Wait for shot completion
-                new Pause(1.90)
+                //new Pause(1.90)
+
+
         );
     }
 
