@@ -77,7 +77,7 @@ public class GoalTargeting extends SubsystemBase {
             TargetDistance = GetDistanceToGoal();
 
             // Display distance to telemetry
-            RobotContainer.telemetrySubsystem.addData("distance", TargetDistance, true);
+//            RobotContainer.telemetrySubsystem.addData("distance", TargetDistance, true);
 
             // Set shooter hood position and flywheel RPM based on distance
 //            RobotContainer.hoodtilt.SetHoodPosition(CalculateHoodAngle(TargetDistance));

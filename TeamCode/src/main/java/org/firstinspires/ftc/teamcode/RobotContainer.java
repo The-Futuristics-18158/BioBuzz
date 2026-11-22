@@ -272,8 +272,8 @@ public class RobotContainer {
             // Update odometry and loop timing telemetry
             telemetrySubsystem.odometryTelemetry();
             telemetrySubsystem.timerOdometry();
-            telemetrySubsystem.addData("in shot zone", safeZone);
-            telemetrySubsystem.addData("isVacuuming", isVacuuming);
+//            telemetrySubsystem.addData("in shot zone", safeZone);
+//            telemetrySubsystem.addData("isVacuuming", isVacuuming);
             telemetrySubsystem.update();
         }
     }

@@ -32,13 +32,13 @@ public class PinpointOdometry extends SubsystemBase {
         pinpointDriver = RobotContainer.ActiveOpMode.hardwareMap.get(GoBildaPinpointDriver.class, "PinpointDriver");
 
         // Set encoder directions for forward and reversed tracking pods
-        pinpointDriver.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+        pinpointDriver.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
 
         // Configure encoder resolution corresponding to goBILDA 4-bar swingarm pods
         pinpointDriver.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
 
         // Configure X and Y pod offsets from the robot center of rotation in millimeters
-        pinpointDriver.setOffsets(+44.0, 108.0, DistanceUnit.MM);
+        pinpointDriver.setOffsets(-110.0, -3.0, DistanceUnit.MM);
 
         // Reset pinpoint driver position and integrated IMU heading
         pinpointDriver.resetPosAndIMU();
