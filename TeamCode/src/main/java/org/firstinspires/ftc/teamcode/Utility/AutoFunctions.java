@@ -28,7 +28,7 @@ public class AutoFunctions {
     public static Pose2d redVsBlue(Pose2d pose) {
         // If on red alliance, invert Y coordinate and heading; otherwise preserve blue coordinates
         if (RobotContainer.isRedAlliance)
-            return new Pose2d(pose.getX(), -pose.getY(), new Rotation2d(-pose.getHeading()));
+            return new Pose2d(-pose.getX(), -pose.getY(), new Rotation2d(pose.getHeading() + Math.PI));
         else
             return pose;
     }

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.CommandGroups.AutoCommandGroups.LoadingSide.Three;
+package org.firstinspires.ftc.teamcode.CommandGroups.AutoCommandGroups;
 
 import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
@@ -11,33 +11,33 @@ import org.firstinspires.ftc.teamcode.Commands.Utility.Pause;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 import org.firstinspires.ftc.teamcode.Utility.AutoFunctions;
 
-public class Back3Auto extends SequentialCommandGroup {
+public class SoloGarden extends SequentialCommandGroup {
 
     // Constructor
-    public Back3Auto() {
+    public SoloGarden() {
 
         addCommands (
                 // Was X = 1.59 Y Was -0.39
-                new InstantCommand(()-> RobotContainer.odometry.setCurrentPos(AutoFunctions.redVsBlue(new Pose2d(1.60, -0.37, new Rotation2d(Math.toRadians(180.0)))))),
+                new InstantCommand(()-> RobotContainer.odometry.setCurrentPos(AutoFunctions.redVsBlue(new Pose2d(-1.6, 0.3, new Rotation2d(Math.toRadians(0.0)))))),
 
+                //shot sequence
 
-                // Move to shoot
+                // Move to pick up from garden
                 new MoveToPose(
                         1.5,
                         1.0,
-                        AutoFunctions.redVsBlue((new Pose2d(1.34, -0.38, new Rotation2d(Math.toRadians(-157.0)))))), // + or - 20 degrees
+                        AutoFunctions.redVsBlue((new Pose2d(-1.6, 0.9, new Rotation2d(Math.toRadians(90))))))
 
-                // Waiting for spin up (we have the time)
-                new Pause(1.5),
+               // new Pause(1.5),
 
 //      -------------------------- Artifact Cycle #1 --------------------------
-                new ShotSequence(),
-
-                // Leave
-                new MoveToPose(
-                        1.5,
-                        1.0,
-                        AutoFunctions.redVsBlue((new Pose2d(1.4, -0.9, new Rotation2d(Math.toRadians(180.0))))))
+//                new ShotSequence(),
+//
+//                // Leave
+//                new MoveToPose(
+//                        1.5,
+//                        1.0,
+//                        AutoFunctions.redVsBlue((new Pose2d(1.4, -0.9, new Rotation2d(Math.toRadians(180.0))))))
         );
     }
 }
