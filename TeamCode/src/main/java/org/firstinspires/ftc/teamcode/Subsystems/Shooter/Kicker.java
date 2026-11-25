@@ -28,8 +28,8 @@ public class Kicker extends SubsystemBase {
 
 
     // Continuous servo power: 1.0 = forward/full speed, 0.5 = stopped
-    private static final double SERVO_ON = 0.7;
-    private static final double SERVO_OFF = 0.5;
+    private static final double SERVO_ON = 0.5;
+    private static final double SERVO_OFF = 0.0;
 
     // Tunable duration constant in seconds to rotate the kicker approximately 180 degrees
     public static double KICK_PAUSE_DURATION_SECONDS = 0.35;
@@ -39,7 +39,7 @@ public class Kicker extends SubsystemBase {
 
     private double leftKickerDistance;
     private double rightKickerDistance;
-    private double blockedDistance=30.0;//in mm
+    private double blockedDistance=999.0;//in mm, was 30mm
     private boolean leftKickerParked;
     private boolean rightKickerParked;
     private boolean areKickersParked;
