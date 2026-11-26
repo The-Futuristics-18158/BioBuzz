@@ -21,6 +21,10 @@ public class SoloGarden extends SequentialCommandGroup {
                 new InstantCommand(()-> RobotContainer.odometry.setCurrentPos(AutoFunctions.redVsBlue(new Pose2d(-1.6, 0.3, new Rotation2d(Math.toRadians(0.0)))))),
 
                 //shot sequence
+                new ShotSequence(),
+                new ShotSequence(),
+                new ShotSequence(),
+                new ShotSequence(),
 
                 // Move to pick up from garden
                 new MoveToPose(

@@ -92,6 +92,11 @@ public class SimplifiedFlywheel extends SubsystemBase {
         // Update commanded flywheel speed
         targetSpeed = RPM;
     }
+
+    public double GetFlywheelSpeed() {
+        return CurrentSpeed;
+    }
+
 public void inkFlywheelSpeed(double newSpeed){
         targetSpeed=targetSpeed+newSpeed;
 }

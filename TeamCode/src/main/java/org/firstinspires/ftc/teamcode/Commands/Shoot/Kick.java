@@ -44,9 +44,6 @@ public class Kick extends CommandBase {
      */
     @Override
     public void execute() {
-        // Periodic control logic
-        //Spin servos
-        kicker.kick();
     }
 
     /**

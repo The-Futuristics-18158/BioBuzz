@@ -43,11 +43,11 @@ public class ShotSequence extends SequentialCommandGroup {
         }
 
         addCommands(
-                new InstantCommand(() -> RobotContainer.shooter.SetFlywheelSpeed(1500)), //not tuned, looks to be right
+                new ShootCommand(), //not tuned, looks to be right
 
-               new InstantCommand(() -> RobotContainer.intake.intakeStop()),
+              // new InstantCommand(() -> RobotContainer.intake.intakeStop()),
 
-                // Raise ramp to position artifact
+                //
                 new InstantCommand(() -> RobotContainer.kicker.kick())
 
                 // Wait for shot completion
