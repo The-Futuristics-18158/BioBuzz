@@ -1,8 +1,10 @@
 package org.firstinspires.ftc.teamcode.CommandGroups.TeleOpSequences;
 
 import com.arcrobotics.ftclib.command.InstantCommand;
+import com.arcrobotics.ftclib.command.ParallelRaceGroup;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 
+import org.firstinspires.ftc.teamcode.Commands.Shoot.WaitForKickersParked;
 import org.firstinspires.ftc.teamcode.Commands.Utility.Pause;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter.KickerSubsystem;
@@ -49,12 +51,13 @@ public class ShotSequence extends SequentialCommandGroup {
               // new InstantCommand(() -> RobotContainer.intake.intakeStop()),
 
                 //
-                new InstantCommand(() -> RobotContainer.kickerSubsystem.kick())
+                new InstantCommand(() -> RobotContainer.kickerSubsystem.kick()),
 
-                // Wait for shot completion
-                //new Pause(1.90)
-
-
+                // Wait for the kickers to cycle back to parked, with a timeout in case the sensors never report it
+                new ParallelRaceGroup(
+                        new WaitForKickersParked(),
+                        new Pause(3.0)
+                )
         );
     }
 
@@ -70,9 +73,4 @@ public class ShotSequence extends SequentialCommandGroup {
         RobotContainer.kickerSubsystem.stop();
         RobotContainer.intake.intakeStop();
     }
-
-//    @Override
-//    public boolean isFinished() {
-//        return RobotContainer.kickerSubsystem.kickersParked();
-//    }
 }
