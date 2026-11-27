@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.RobotContainer;
 public class DriveTrain extends SubsystemBase {
 
     // Constants for DC Motor
-    final double MAXRPM = 6000.0;
+    final double MAXRPM = 5600.0;
     final double MAXRPS = MAXRPM / 60.0;
 
     // Motor speed ticks per revolution to m/s travel speed
@@ -33,7 +33,7 @@ public class DriveTrain extends SubsystemBase {
     public final double MAX_SPEED = MAXRPS * Math.PI * WHEEL_DIA / GEAR_RATIO;
 
     // Kinematics physical dimensions in meters
-    final double TRACK_WIDTH = 0.34;   // Width between left and right wheels in meters
+    final double TRACK_WIDTH = 0.335;   // Width between left and right wheels in meters
     final double TRACK_LENGTH = 0.192; // Length between front and back wheels in meters
     private MecanumDriveKinematics driveKinematics;
 
@@ -62,13 +62,13 @@ public class DriveTrain extends SubsystemBase {
         // Setup Mecanum kinematics with wheel offset locations relative to robot center
         driveKinematics = new MecanumDriveKinematics(
                 // Front Left
-                new Translation2d(TRACK_LENGTH * 0.208, TRACK_WIDTH * 0.5),
+                new Translation2d(TRACK_LENGTH * 0.25, TRACK_WIDTH * 0.5),
                 // Front Right
-                new Translation2d(TRACK_LENGTH * 0.208, TRACK_WIDTH * -0.5),
+                new Translation2d(TRACK_LENGTH * 0.25, TRACK_WIDTH * -0.5),
                 // Back Left
-                new Translation2d(TRACK_LENGTH * -0.792, TRACK_WIDTH * 0.5),
+                new Translation2d(TRACK_LENGTH * -0.75, TRACK_WIDTH * 0.5),
                 // Back Right
-                new Translation2d(TRACK_LENGTH * -0.792, TRACK_WIDTH * -0.5));
+                new Translation2d(TRACK_LENGTH * -0.75, TRACK_WIDTH * -0.5));
 
         // Retrieve drive motors from the active OpMode's hardware map
         leftFrontDrive = RobotContainer.ActiveOpMode.hardwareMap.get(DcMotorEx.class, "leftFrontDrive");

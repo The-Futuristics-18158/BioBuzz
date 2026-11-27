@@ -20,7 +20,7 @@ public class VacuumMode extends CommandBase {
     public VacuumMode() {
         // Require intake and ramp lift subsystems
         addRequirements(RobotContainer.intake);
-        addRequirements(RobotContainer.kicker);
+        addRequirements(RobotContainer.kickerSubsystem);
 
         onoff = false;
     }
@@ -35,11 +35,11 @@ public class VacuumMode extends CommandBase {
         if (!onoff) {
             // Start vacuuming: run intake and raise ramp
             RobotContainer.intake.intakeRun();
-            RobotContainer.kicker.kick();
+            RobotContainer.kickerSubsystem.kick();
         } else {
             // Stop vacuuming: stop intake and lower ramp
             RobotContainer.intake.intakeStop();
-            RobotContainer.kicker.stop();
+            RobotContainer.kickerSubsystem.stop();
         }
         // Invert toggle state
         onoff = !onoff;

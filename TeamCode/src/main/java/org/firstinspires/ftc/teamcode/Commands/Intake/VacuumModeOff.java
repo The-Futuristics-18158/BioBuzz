@@ -19,7 +19,7 @@ public class VacuumModeOff extends CommandBase {
     public VacuumModeOff() {
         // Require intake and ramp lift subsystems
         addRequirements(RobotContainer.intake);
-        addRequirements(RobotContainer.kicker);
+        addRequirements(RobotContainer.kickerSubsystem);
     }
 
     /**
@@ -33,7 +33,7 @@ public class VacuumModeOff extends CommandBase {
         RobotContainer.intake.intakeStop();
 
         // Lower ramp back down
-        RobotContainer.kicker.stop();
+        RobotContainer.kickerSubsystem.stop();
 
         // Clear vacuuming status flag
         RobotContainer.isVacuuming = false;

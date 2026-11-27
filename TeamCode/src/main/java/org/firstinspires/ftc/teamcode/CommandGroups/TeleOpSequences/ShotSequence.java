@@ -5,6 +5,7 @@ import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 
 import org.firstinspires.ftc.teamcode.Commands.Utility.Pause;
 import org.firstinspires.ftc.teamcode.RobotContainer;
+import org.firstinspires.ftc.teamcode.Subsystems.Shooter.KickerSubsystem;
 
 /**
  * Sequential command group for executing a shot into the alliance goal.
@@ -34,7 +35,8 @@ public class ShotSequence extends SequentialCommandGroup {
     public ShotSequence(double shotDelay) {
         // Require intake and ramp lift subsystems
         addRequirements(RobotContainer.intake);
-        addRequirements(RobotContainer.kicker);
+        addRequirements(RobotContainer.kickerSubsystem);
+        addRequirements(RobotContainer.shooter);
 
         // Prepend delay if specified
         if (shotDelay > 0) {
@@ -42,14 +44,17 @@ public class ShotSequence extends SequentialCommandGroup {
         }
 
         addCommands(
-                // Raise ramp to position artifact
-                new InstantCommand(() -> RobotContainer.kicker.kick()),
+                new ShootCommand(), //not tuned, looks to be right
 
-                // Wait for ramp to lift
-                new Pause(0.25),
+              // new InstantCommand(() -> RobotContainer.intake.intakeStop()),
+
+                //
+                new InstantCommand(() -> RobotContainer.kickerSubsystem.kick())
 
                 // Wait for shot completion
-                new Pause(1.90)
+                //new Pause(1.90)
+
+
         );
     }
 
@@ -62,7 +67,12 @@ public class ShotSequence extends SequentialCommandGroup {
      */
     @Override
     public void end(boolean interrupted) {
-        RobotContainer.kicker.stop();
+        RobotContainer.kickerSubsystem.stop();
         RobotContainer.intake.intakeStop();
     }
+
+//    @Override
+//    public boolean isFinished() {
+//        return RobotContainer.kickerSubsystem.kickersParked();
+//    }
 }
