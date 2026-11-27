@@ -3,16 +3,15 @@ package org.firstinspires.ftc.teamcode;
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.command.InstantCommand;
-import com.arcrobotics.ftclib.command.ParallelCommandGroup;
 import com.arcrobotics.ftclib.command.button.Trigger;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.arcrobotics.ftclib.geometry.Pose2d;
 import com.arcrobotics.ftclib.geometry.Rotation2d;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.CommandGroups.TeleOpSequences.GhostTeleOp;
 import org.firstinspires.ftc.teamcode.CommandGroups.TeleOpSequences.IntakeSequence;
 import org.firstinspires.ftc.teamcode.CommandGroups.TeleOpSequences.ShotSequence;
 import org.firstinspires.ftc.teamcode.Commands.Drive.ManualDrive;
@@ -21,15 +20,12 @@ import org.firstinspires.ftc.teamcode.Commands.Intake.ReverseIntakeCommand;
 import org.firstinspires.ftc.teamcode.Commands.Intake.IntakeCommand;
 import org.firstinspires.ftc.teamcode.Commands.Intake.VacuumModeOff;
 import org.firstinspires.ftc.teamcode.Commands.Intake.VacuumModeOn;
-import org.firstinspires.ftc.teamcode.Commands.Shoot.Kick;
-import org.firstinspires.ftc.teamcode.Commands.UptakeRampControle;
 import org.firstinspires.ftc.teamcode.Subsystems.Cameras.LimeLight;
 import org.firstinspires.ftc.teamcode.Subsystems.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Subsystems.Sensors.GoalTargeting;
 import org.firstinspires.ftc.teamcode.Subsystems.Sensors.UptakeSensor;
-import org.firstinspires.ftc.teamcode.Subsystems.Shooter.Flywheel;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter.InniOutti;
-import org.firstinspires.ftc.teamcode.Subsystems.Shooter.Kicker;
+import org.firstinspires.ftc.teamcode.Subsystems.Shooter.KickerSubsystem;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter.SimplifiedFlywheel;
 import org.firstinspires.ftc.teamcode.Subsystems.Utils.Blinkin;
 import org.firstinspires.ftc.teamcode.Subsystems.DriveTrain;
@@ -72,7 +68,9 @@ public class RobotContainer {
     public static DriveTrain drivesystem;
     public static Odometry odometry;
     public static InniOutti inniOutti;
-    public static Kicker kicker;
+    public static KickerSubsystem kickerSubsystem;
+    public static DistanceSensor leftKickerSensor;
+    public static DistanceSensor rightKickerSensor;
     public static Intake intake;
     public static SimplifiedFlywheel shooter;
     public static LimeLight limeLight;
@@ -142,7 +140,7 @@ public class RobotContainer {
         drivesystem = new DriveTrain();
         odometry = new Odometry();
         inniOutti = new InniOutti();
-        kicker = new Kicker();
+        kickerSubsystem = new KickerSubsystem();
         intake = new Intake();
         shooter = new SimplifiedFlywheel();
         limeLight = new LimeLight();
@@ -167,7 +165,7 @@ public class RobotContainer {
                 AutoFunctions.redVsBlue(new Pose2d(0.0, 0.0, new Rotation2d(Math.toRadians(-90.0)))))));
 
         // (Driver) Shooting Controls: RIGHT_BUMPER executes shooting sequence
-        driverOp.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenHeld(new ShotSequence());
+        driverOp.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(new ShotSequence());
 
         // (Driver) Vacuum Mode: Y button toggles vacuum mode on/off
         driverOp.getGamepadButton(GamepadKeys.Button.Y).toggleWhenPressed(new VacuumModeOn(), new VacuumModeOff());
@@ -186,8 +184,8 @@ public class RobotContainer {
         // (Driver) Hunt Mode: A button runs hunt mode
         driverOp.getGamepadButton(GamepadKeys.Button.A).whenHeld(new HuntModeCommand());
 
-        // (Driver) Ghost TeleOp: X button runs autonomous routine
-        driverOp.getGamepadButton(GamepadKeys.Button.X).whenHeld(new Kick());
+//        // (Driver) Ghost TeleOp: X button runs autonomous routine
+//        driverOp.getGamepadButton(GamepadKeys.Button.X).whenPressed(new ShotSequence());
 
         // (Driver) Hood Manual Trim: DPAD LEFT / RIGHT increments hood angle
 //        driverOp.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(

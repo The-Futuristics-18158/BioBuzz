@@ -19,7 +19,7 @@ public class VacuumModeOn extends CommandBase {
     public VacuumModeOn() {
         // Require intake and ramp lift subsystems
         addRequirements(RobotContainer.intake);
-        addRequirements(RobotContainer.kicker);
+        addRequirements(RobotContainer.kickerSubsystem);
     }
 
     /**
@@ -33,7 +33,7 @@ public class VacuumModeOn extends CommandBase {
         RobotContainer.isVacuuming = true;
 
         // Raise intake ramp
-        RobotContainer.kicker.kick();
+        RobotContainer.kickerSubsystem.kick();
 
         // Run intake rollers
         RobotContainer.intake.intakeRun();
