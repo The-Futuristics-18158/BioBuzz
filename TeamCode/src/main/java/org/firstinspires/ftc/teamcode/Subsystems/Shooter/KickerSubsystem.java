@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.Subsystems.Shooter;
 
+import com.arcrobotics.ftclib.command.Robot;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.RobotContainer;
 
 /**
@@ -12,16 +14,23 @@ import org.firstinspires.ftc.teamcode.RobotContainer;
  *
  * @author superzokabear
  */
-public class Kicker extends SubsystemBase {
+public class KickerSubsystem extends SubsystemBase {
 
     // Kicker servo hardware
     private final Servo leftKickerServo;
     private final Servo rightKickerServo;
 
+    private final DistanceSensor leftKickerSensor;
+    private final DistanceSensor rightKickerSensor;
+
+    private boolean areKickersParked;
+
+    private final double PARKED_DISTANCE=30.0; //in mm
 
     private DistanceSensor uptakeSensor_DistanceSensor;
 
-
+    private double leftDistance;
+    private double rightDistance;
 
     // Continuous servo power: 1.0 = forward/full speed, 0.5 = stopped
     private static final double KICKER_UP = 0.5;
@@ -38,10 +47,13 @@ public class Kicker extends SubsystemBase {
      *
      * @author superzokabear
      */
-    public Kicker() {
+    public KickerSubsystem() {
         // Retrieve kicker servos from the active OpMode's hardware map
         leftKickerServo = RobotContainer.ActiveOpMode.hardwareMap.get(Servo.class, "leftKickerServo");
         rightKickerServo = RobotContainer.ActiveOpMode.hardwareMap.get(Servo.class, "rightKickerServo");
+
+        leftKickerSensor= RobotContainer.ActiveOpMode.hardwareMap.get(DistanceSensor.class, "leftKickerSensor");
+        rightKickerSensor= RobotContainer.ActiveOpMode.hardwareMap.get(DistanceSensor.class, "rightKickerSensor");
 
         // Servos run in opposite directions
         leftKickerServo.setDirection(Servo.Direction.FORWARD);
@@ -61,10 +73,22 @@ public class Kicker extends SubsystemBase {
      */
     @Override
     public void periodic() {
+        leftDistance=leftKickerSensor.getDistance(DistanceUnit.MM);
+        rightDistance=rightKickerSensor.getDistance(DistanceUnit.MM);
+
         if(kickTimer.milliseconds()>1000.0) {
             park();
         }
         RobotContainer.telemetrySubsystem.addData("Timer in MS", kickTimer.milliseconds());
+        RobotContainer.telemetrySubsystem.addData("Left Kicker Distance", leftKickerSensor.getDistance(DistanceUnit.MM));
+        RobotContainer.telemetrySubsystem.addData("Right Kicker Distance", rightKickerSensor.getDistance(DistanceUnit.MM));
+
+
+        if(leftDistance<PARKED_DISTANCE && rightDistance<PARKED_DISTANCE) {
+            areKickersParked=true;
+        } else {
+            areKickersParked=false;
+        }
     }
 
     /**
@@ -94,21 +118,7 @@ public class Kicker extends SubsystemBase {
         isKicking=false;
     }
 
-    /**
-     * Checks whether the kicker is currently in motion.
-     *
-     * @return true if kicker is currently rotating; false otherwise
-     */
-    public boolean isKicking() {
-        return isKicking;
-    }
-
-    /**
-     * Backward-compatible alias for checking if the kicker is running.
-     *
-     * @return true if kicker is running; false otherwise
-     */
-    public boolean rampIsRunning() {
-        return isKicking;
+    public boolean kickersParked() {
+        return areKickersParked;
     }
 }

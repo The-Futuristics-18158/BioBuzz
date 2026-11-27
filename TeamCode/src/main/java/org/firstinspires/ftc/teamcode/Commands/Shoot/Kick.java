@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.Commands.Shoot;
 import com.arcrobotics.ftclib.command.CommandBase;
 
 import org.firstinspires.ftc.teamcode.RobotContainer;
-import org.firstinspires.ftc.teamcode.Subsystems.Shooter.Kicker;
+import org.firstinspires.ftc.teamcode.Subsystems.Shooter.KickerSubsystem;
 
 /**
  * Template class for creating new FTCLib commands.
@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.Shooter.Kicker;
  * @author gbuckholtz
  */
 public class Kick extends CommandBase {
-    Kicker kicker;
+    KickerSubsystem kickerSubsystem;
 
     /**
      * Constructs a new TemplateCommand.
@@ -22,8 +22,8 @@ public class Kick extends CommandBase {
      */
     public Kick() {
         // Add the kicker RobotContainer
-        addRequirements(RobotContainer.kicker);
-        kicker=RobotContainer.kicker;
+        addRequirements(RobotContainer.kickerSubsystem);
+        kickerSubsystem =RobotContainer.kickerSubsystem;
     }
 
     /**
@@ -68,6 +68,6 @@ public class Kick extends CommandBase {
     @Override
     public void end(boolean interrupted) {
         // Stop motors or reset subsystems
-        kicker.stop();
+        kickerSubsystem.stop();
     }
 }

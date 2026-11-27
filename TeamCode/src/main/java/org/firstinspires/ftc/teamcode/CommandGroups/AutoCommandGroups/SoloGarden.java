@@ -22,9 +22,13 @@ public class SoloGarden extends SequentialCommandGroup {
 
                 //shot sequence
                 new ShotSequence(),
+                new Pause(2.0),
                 new ShotSequence(),
+                new Pause(2.0),
                 new ShotSequence(),
+                new Pause(2.0),
                 new ShotSequence(),
+                new Pause(2.0),
 
                 // Move to pick up from garden
                 new MoveToPose(

@@ -40,7 +40,7 @@ public class ShootCommand extends CommandBase {
     public void initialize() {
         // Reset timers or initial states
         atSpeed=false;
-        setSpeed(1500.0);
+        setSpeed(1400.0);
     }
 
     /**
@@ -54,7 +54,7 @@ public class ShootCommand extends CommandBase {
         double currentFlywheelSpeed= shooter.GetFlywheelSpeed();
         RobotContainer.telemetrySubsystem.addData("Current Flywheel Speed", currentFlywheelSpeed);
 
-        if(currentFlywheelSpeed>(myFlywheelSpeed-50)|| currentFlywheelSpeed<(myFlywheelSpeed+50)) {
+        if(currentFlywheelSpeed>(myFlywheelSpeed-20) && currentFlywheelSpeed<(myFlywheelSpeed+20)) {
             atSpeed=true;
         }
     }

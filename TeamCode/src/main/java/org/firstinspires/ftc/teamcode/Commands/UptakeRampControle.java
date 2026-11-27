@@ -48,7 +48,7 @@ public class UptakeRampControle extends CommandBase {
     public UptakeRampControle(double time, boolean timeoutEnabled) {
         // Declare subsystem requirements
         addRequirements(RobotContainer.uptakeSensor);
-        addRequirements(RobotContainer.kicker);
+        addRequirements(RobotContainer.kickerSubsystem);
 
         timeout = timeoutEnabled;
         timer = new ElapsedTime();
@@ -63,7 +63,7 @@ public class UptakeRampControle extends CommandBase {
     @Override
     public void initialize() {
         // Raise ramp to feed artifact into shooter
-        RobotContainer.kicker.kick();
+        RobotContainer.kickerSubsystem.kick();
     }
 
     /**
@@ -100,6 +100,6 @@ public class UptakeRampControle extends CommandBase {
     @Override
     public void end(boolean interrupted) {
         // Return ramp to lowered collection position
-        RobotContainer.kicker.stop();
+        RobotContainer.kickerSubsystem.stop();
     }
 }
