@@ -166,7 +166,7 @@ public class RobotContainer {
                 AutoFunctions.redVsBlue(new Pose2d(0.0, 0.0, new Rotation2d(Math.toRadians(-90.0)))))));
 
         // (Driver) Shooting Controls: RIGHT_BUMPER executes shooting sequence
-        driverOp.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(new ShotSequence());
+        driverOp.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whileHeld(new ShotSequence());
 
         // (Driver) Vacuum Mode: Y button toggles vacuum mode on/off
         // driverOp.getGamepadButton(GamepadKeys.Button.Y).toggleWhenPressed(new VacuumModeOn(), new VacuumModeOff());
