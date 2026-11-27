@@ -20,6 +20,7 @@ import org.firstinspires.ftc.teamcode.Commands.Intake.ReverseIntakeCommand;
 import org.firstinspires.ftc.teamcode.Commands.Intake.IntakeCommand;
 import org.firstinspires.ftc.teamcode.Commands.Intake.VacuumModeOff;
 import org.firstinspires.ftc.teamcode.Commands.Intake.VacuumModeOn;
+import org.firstinspires.ftc.teamcode.Commands.IntakeRunEndless;
 import org.firstinspires.ftc.teamcode.Subsystems.Cameras.LimeLight;
 import org.firstinspires.ftc.teamcode.Subsystems.Intake.Intake;
 import org.firstinspires.ftc.teamcode.Subsystems.Sensors.GoalTargeting;
@@ -168,7 +169,9 @@ public class RobotContainer {
         driverOp.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(new ShotSequence());
 
         // (Driver) Vacuum Mode: Y button toggles vacuum mode on/off
-        driverOp.getGamepadButton(GamepadKeys.Button.Y).toggleWhenPressed(new VacuumModeOn(), new VacuumModeOff());
+        // driverOp.getGamepadButton(GamepadKeys.Button.Y).toggleWhenPressed(new VacuumModeOn(), new VacuumModeOff());
+        driverOp.getGamepadButton(GamepadKeys.Button.Y).whenPressed(new IntakeRunEndless());
+
 
         // (Driver) Intake Systems: LEFT_BUMPER runs intake and uptake control in parallel
         driverOp.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenHeld(
