@@ -72,11 +72,12 @@ public class SimplifiedFlywheel extends SubsystemBase {
             // Calculate current velocity in RPM from encoder ticks per second
             CurrentSpeed = flywheelMotorRight.getVelocity() * TICKSPStoRPM;
             flywheelMotorRight.setVelocity((targetSpeed / 60) * ticksPerRev);
-            RobotContainer.telemetrySubsystem.addData("RPM Right",CurrentSpeed);
+            RobotContainer.telemetrySubsystem.addData("RPM Right", CurrentSpeed);
             //left
             CurrentSpeed = flywheelMotorLeft.getVelocity() * TICKSPStoRPM;
             flywheelMotorLeft.setVelocity((targetSpeed / 60) * ticksPerRev);
-        RobotContainer.telemetrySubsystem.addData("RPM Left",CurrentSpeed);
+            RobotContainer.telemetrySubsystem.addData("RPM Left", CurrentSpeed);
+            RobotContainer.telemetrySubsystem.addData("Target RPM", targetSpeed);
 
         }
     }
